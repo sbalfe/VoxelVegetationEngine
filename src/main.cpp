@@ -22,8 +22,8 @@
 Shader* customShader;
 
 struct windowContext{
-    SDL_Window    *m_window;
-    SDL_GLContext  m_context;
+    SDL_Window    *m_window {};
+    SDL_GLContext  m_context {};
     std::uint32_t nFrames {};
 };
 
