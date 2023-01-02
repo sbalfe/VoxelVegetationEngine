@@ -4,7 +4,14 @@ project(Voxel)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build")
 
-add_executable(Voxel src/ResourceManagers/Shader.cpp src/main.cpp src/Glad/glad.c data/Images/logo.h src/stb_image.h src/Engine/Camera.cpp src/Engine/Camera.h)
+add_executable(Voxel
+        src/ResourceManagers/Shader.cpp
+        src/Glad/glad.c
+        src/stb_image.h
+        src/Engine/Camera.h
+        src/Engine/Block.h
+        src/Engine/Renderer.h
+        src/main_test.cpp)
 
 #add_executable(Voxel src/test.cpp)
 
