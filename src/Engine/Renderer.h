@@ -14,7 +14,6 @@
 #include "../ResourceManagers/Shader.h"
 #include "Camera.h"
 #include "Block.h"
-#define STB_IMAGE_IMPLEMENTATION
 #include "../stb_image.h"
 #include <fmt/format.h>
 #include <algorithm>
@@ -146,7 +145,7 @@ class Renderer {
     auto currentFrame = static_cast<float>(SDL_GetTicks());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader_->use();
 
@@ -158,7 +157,7 @@ class Renderer {
     for (const auto* v: voxels_){
       glBindVertexArray(v->vao);
       glm::mat4 model = glm::mat4(1.0f);
-      glm::vec3 scale = glm::vec3(0.2, 0.2, 0.2);
+      glm::vec3 scale = glm::vec3(0.01, 0.01, 0.01);
       model = glm::translate(model, {v->position.x,v->position.y,v->position.z});
       model = glm::scale(model, scale);
       shader_->setMat4("model", model);
@@ -168,8 +167,6 @@ class Renderer {
   }
 
   void ProcessMouse(float x_pos, float y_pos){
-
-    std::cout << fmt::format("mouse x: {}, mouse y: {}\n", x_pos, y_pos);
 
     if (first_mouse_)
     {

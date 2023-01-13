@@ -108,18 +108,18 @@
 //};
 //
 ////std::array<std::uint32_t, 38> indices_back_front{
-////    0,1,3,
-////    1,2,3, /// FRONT_QUAD
-////    4,5,7,
-////    5,6,7,// BACK_QUAD
-////    8,9,11,
-////    9,10,11,//LEFT_QUAD
-////    12,13,15,
-////    13,14,15,// RIGHT_QUAD
-////    16,17, 19,
-////    17,18, 19, // TOP_QUAD
-////    20,21, 23,
-////    21,22, 23 // BOTTOM_QUAD
+    0,1,3,
+    1,2,3, /// FRONT_QUAD
+    4,5,7,
+    5,6,7,// BACK_QUAD
+    8,9,11,
+    9,10,11,//LEFT_QUAD
+    12,13,15,
+    13,14,15,// RIGHT_QUAD
+    16,17, 19,
+    17,18, 19, // TOP_QUAD
+    20,21, 23,
+    21,22, 23 // BOTTOM_QUAD
 ////};
 //
 //std::array<std::uint32_t, 38> indices_front_left{
