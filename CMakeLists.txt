@@ -11,7 +11,7 @@ add_executable(Voxel
         src/Engine/Camera.h
         src/Engine/Block.h
         src/Engine/Renderer.h
-        src/main_test.cpp src/PCG/Lindenmayer.cpp src/PCG/Lindenmayer.h src/PCG/LindenmayerRenderer.cpp src/PCG/LindenmayerRenderer.h)
+        src/main_test.cpp src/PCG/Lindenmayer.cpp src/PCG/Lindenmayer.h src/PCG/LindenmayerRenderer.cpp src/PCG/LindenmayerRenderer.h src/FastNoiseLite-1.0.3/Cpp/FastNoiseLite.h)
 
 #add_executable(Voxel src/test.cpp)
 

@@ -111,6 +111,8 @@ class Renderer {
   }
 
   void AddVoxel(Voxel* voxel){
+    voxel->position = voxel->position / 20;
+    std::cout << "before render: " << voxel->position << std::endl;
     glGenVertexArrays(1, &voxel->vao);
     glBindVertexArray(voxel->vao);
 
@@ -145,20 +147,21 @@ class Renderer {
     auto currentFrame = static_cast<float>(SDL_GetTicks());
     deltaTime = currentFrame - lastFrame;
     lastFrame = currentFrame;
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader_->use();
 
     glm::mat4 projection = glm::perspective(glm::radians(camera_->Zoom), (float)(screen_width_) / (float)(screen_height_), 0.1f, 100.0f);
     glm::mat4 view = camera_->GetViewMatrix();
+
     shader_->setMat4("projection", projection);
     shader_->setMat4("view", view);
 
     for (const auto* v: voxels_){
       glBindVertexArray(v->vao);
       glm::mat4 model = glm::mat4(1.0f);
-      glm::vec3 scale = glm::vec3(0.01, 0.01, 0.01);
-      model = glm::translate(model, {v->position.x,v->position.y,v->position.z});
+      glm::vec3 scale = glm::vec3(0.05, 0.05, 0.05);
+      model = glm::translate(model, {v->position.x(),v->position.y(),v->position.z()});
       model = glm::scale(model, scale);
       shader_->setMat4("model", model);
       glDrawElements(GL_TRIANGLES, static_cast<int>(v->indices.size()), GL_UNSIGNED_INT, nullptr);
