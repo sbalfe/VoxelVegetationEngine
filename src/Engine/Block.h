@@ -38,6 +38,10 @@ struct Position {
     return {internal_vector_.x / value,  internal_vector_.y / value,   internal_vector_.z / value};
   }
 
+  glm::vec3 operator+(double value) const {
+    return {internal_vector_.x + value, internal_vector_.y + value, internal_vector_.z + value};
+  }
+
   void Update(uint32_t t, glm::dvec3 turtle_direction, double scale, glm::dvec3 initial_position){
     internal_vector_ = (((turtle_direction * static_cast<double>(t)) * scale) + initial_position);
   }
@@ -116,7 +120,7 @@ struct Voxel {
   Position position;
   std::vector<uint32_t> indices;
   std::array<GLfloat, 108> colour_data{};
-  uint32_t vao, ebo, colour_buffer;
+  uint32_t vao, ebo, vbo, colour_buffer;
 };
 
 

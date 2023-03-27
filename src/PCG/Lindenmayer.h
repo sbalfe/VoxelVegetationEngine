@@ -54,7 +54,7 @@ class Lindenmayer {
   };
 
   explicit Lindenmayer(std::string axiom, std::unique_ptr<Renderer>& renderer, std::vector<uint32_t> indices)
-      : result_ {std::move(axiom)}, turtle_position_{0,0,0}, renderer_{renderer}, indices_{std::move(indices)} {
+      : axiom_ {std::move(axiom)}, turtle_position_{0,0,0}, renderer_{renderer}, indices_{std::move(indices)} {
     {
       direction_key_map_['A'] = Direction::A;
       direction_key_map_['B'] = Direction::B;
@@ -97,7 +97,8 @@ class Lindenmayer {
     return false;
   }
 
-  [[nodiscard]] std::string ExecuteProductions(uint32_t production_count){
+  std::string ExecuteProductions(uint32_t production_count){
+    result_ = axiom_;
     while (production_count-- != 0) {
       branch_length_ *= 0.80;
       size_t index {0};
@@ -248,7 +249,7 @@ class Lindenmayer {
 
   void CreateSphere(Position center){
     Colour colour{0.0f,1.0f,0.0f};
-    float radius {6};
+    float radius {8};
     float side = radius * 0.05f;
 
     std::cout << "center " << center << '\n';
@@ -339,8 +340,12 @@ class Lindenmayer {
     current_colour_ %= 3;
   }
 
-  void ProcessString(){
-
+  void ProcessString(int length){
+    std::cout << "processing string" << std::endl;
+    branch_length_ = length;
+    turtle_position_ = {0,0,0};
+    turtle_direction_ = {0,1,0};
+    renderer_->ResetVoxels();
 
     std::stack<TurtleState> turtle_state;
 
@@ -380,13 +385,11 @@ class Lindenmayer {
           Rotate(Axis::kY,-1);
         }
         else if (c == '>'){
-          auto branch_length = 40;
           Position initial_position = turtle_position_;
-          for (uint32_t i {0}; i < branch_length; ++i){
+          for (uint32_t i {0}; i < branch_length_; ++i){
             auto position_before = turtle_position_;
             Place(i, initial_position.get_internal());
             std::cout.precision(std::numeric_limits<double>::digits10 + 1);
-            std::cout << "after position: " <<turtle_position_ << std::endl;
           }
         }
     });
@@ -405,6 +408,7 @@ class Lindenmayer {
   std::vector<uint32_t> indices_;
   std::vector<Colour> colours_;
   int current_colour_ {0};
+  std::string axiom_;
 };
 
 #endif  // VOXEL_LINDENMAYER_H

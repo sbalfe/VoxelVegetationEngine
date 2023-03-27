@@ -21,11 +21,22 @@
 #include <filesystem>
 #include <iostream>
 #include "buffer_data.h"
+#include "../ImGui/imgui.h"
+#include "../ImGui/imgui_impl_sdl.h"
+#include "../ImGui/imgui_impl_opengl3.h"
+
 
 class Renderer {
  public:
 
+  struct RenderState {
+    int branching_angle_;
+    int production_count_;
+    int branch_length_;
+  };
+
   Renderer(uint32_t screen_width, uint32_t screen_height): screen_width_{screen_width}, screen_height_{screen_height}{
+    state_ = RenderState{20, 3};
     // Initialize SDL Video
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
       std::cout << "test" << std::endl;
@@ -39,6 +50,8 @@ class Renderer {
         SDL_WINDOWPOS_CENTERED,
         screen_width_, screen_height_,
         SDL_WINDOW_OPENGL);
+
+
     if (window_ == nullptr) {
       fprintf(stderr, "Failed to create main window\n");
       SDL_Quit();
@@ -55,11 +68,11 @@ class Renderer {
 
     /* create opengl context in SDL */
     context_ = SDL_GL_CreateContext(window_);
+
     if (context_ == nullptr) {
       fprintf(stderr, "Failed to create GL context\n");
       SDL_DestroyWindow(window_);
       SDL_Quit();
-
     }
 
     SDL_GL_SetSwapInterval(1); // Use VSYNC
@@ -107,8 +120,15 @@ class Renderer {
       std::cout << "Failed to load texture" << std::endl;
     }
     stbi_image_free(data);
+
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui_ImplSDL2_InitForOpenGL(window_, SDL_GL_GetCurrentContext());
+    ImGui_ImplOpenGL3_Init("#version 330");
     /*******************/
   }
+
+  [[nodiscard]] RenderState GetState() const { return state_;}
 
   void AddVoxel(Voxel* voxel){
     voxel->position = voxel->position / 20;
@@ -116,8 +136,8 @@ class Renderer {
     glGenVertexArrays(1, &voxel->vao);
     glBindVertexArray(voxel->vao);
 
-    glGenBuffers(1, &vbo_);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_);
+    glGenBuffers(1, &voxel->vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, voxel->vbo);
 
     glBufferData(GL_ARRAY_BUFFER, shriller::cube_data.size()  * sizeof(float) , shriller::cube_data.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
@@ -127,7 +147,7 @@ class Renderer {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, voxel->ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(voxel->indices.size()  * sizeof(int)), voxel->indices.data(), GL_STATIC_DRAW);
 
-    for (int i = 0; i < 108; i+=3){
+    for (int i = 0; i < 108; i+=3) {
       voxel->colour_data[i] = voxel->colour.r;
       voxel->colour_data[i+1] = voxel->colour.g;
       voxel->colour_data[i+2] = voxel->colour.b;
@@ -142,7 +162,50 @@ class Renderer {
     voxels_.emplace_back(voxel);
   }
 
-  void Render(){
+  void ResetVoxels(){
+    // Deallocate all voxel buffers
+    for (auto& voxel : voxels_) {
+      glDeleteVertexArrays(1, &voxel->vao);
+      glDeleteBuffers(1, &voxel->vbo);
+      glDeleteBuffers(1, &voxel->ebo);
+      glDeleteBuffers(1, &voxel->colour_buffer);
+      delete voxel;
+    }
+    voxels_.clear();
+  }
+
+  static bool SliderInt(const char* label, int* value, uint32_t min, uint32_t max)
+  {
+    ImGui::PushID(label);
+    ImGui::Text("%s", label);
+    ImGui::SameLine();
+    bool result = ImGui::SliderInt("", value, min, max);
+    ImGui::PopID();
+    return result;
+  }
+
+  void ShowGUI(){
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplSDL2_NewFrame(window_);
+    ImGui::NewFrame();
+    ImGui::Begin("test window");
+    if (ImGui::Button("show model")){
+      show = !show;
+    }
+    if (ImGui::Button("re-render")){
+      process_again_ = true;
+      ResetVoxels();
+    }
+    if (ImGui::Button("export to OBJ")){
+      Export("");
+    }
+    SliderInt("branch length", &state_.branch_length_, min, max);
+    SliderInt("production count", &state_.production_count_, min, max);
+  }
+
+  void Export(const std::string& filename){}
+
+  void Render() {
     glEnable(GL_DEPTH_TEST);
     auto currentFrame = static_cast<float>(SDL_GetTicks());
     deltaTime = currentFrame - lastFrame;
@@ -151,21 +214,29 @@ class Renderer {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader_->use();
 
-    glm::mat4 projection = glm::perspective(glm::radians(camera_->Zoom), (float)(screen_width_) / (float)(screen_height_), 0.1f, 100.0f);
-    glm::mat4 view = camera_->GetViewMatrix();
+    if (show) {
+      glm::mat4 projection = glm::perspective(
+          glm::radians(camera_->Zoom),
+          (float)(screen_width_) / (float)(screen_height_), 0.1f, 100.0f);
+      glm::mat4 view = camera_->GetViewMatrix();
 
-    shader_->setMat4("projection", projection);
-    shader_->setMat4("view", view);
+      shader_->setMat4("projection", projection);
+      shader_->setMat4("view", view);
 
-    for (const auto* v: voxels_){
-      glBindVertexArray(v->vao);
-      glm::mat4 model = glm::mat4(1.0f);
-      glm::vec3 scale = glm::vec3(0.05, 0.05, 0.05);
-      model = glm::translate(model, {v->position.x(),v->position.y(),v->position.z()});
-      model = glm::scale(model, scale);
-      shader_->setMat4("model", model);
-      glDrawElements(GL_TRIANGLES, static_cast<int>(v->indices.size()), GL_UNSIGNED_INT, nullptr);
+      for (const auto* v : voxels_) {
+        glBindVertexArray(v->vao);
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::vec3 scale = glm::vec3(0.05, 0.05, 0.05);
+        model = glm::translate(model, {v->position.x(), v->position.y(), v->position.z()});
+        model = glm::scale(model, scale);
+        shader_->setMat4("model", model);
+        glDrawElements(GL_TRIANGLES, static_cast<int>(v->indices.size()),GL_UNSIGNED_INT, nullptr);
+      }
     }
+
+    ImGui::End();
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(window_);
   }
 
@@ -203,6 +274,10 @@ class Renderer {
     }
   }
 
+  [[nodiscard]] auto ObtainLength() const{ return branch_length_; }
+  [[nodiscard]] auto ObtainCount() const{ return production_count_; }
+
+  bool process_again_ {false};
  private:
 
   // SDL window context
@@ -231,6 +306,15 @@ class Renderer {
   // timings
   float deltaTime = 0.0f;	// time between current frame and last frame
   float lastFrame = 0.0f;
+
+  bool show {};
+  int branch_length_ {};
+  int production_count_{};
+
+  RenderState state_;
+  const uint32_t min {};
+  const uint32_t max {100};
+
 
   // Voxel Data
   std::vector<Voxel*> voxels_;
