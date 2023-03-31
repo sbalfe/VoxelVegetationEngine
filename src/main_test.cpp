@@ -46,7 +46,7 @@ int main(){
 
   l_system.AddRule('p',"9I+[p+#]--//[--#]I[++#]-[p#]++p#");
   l_system.AddRule('I', ">S[//&&#][//^^#]>S");
-  l_system.AddRule('S',"0S>S");
+  l_system.AddRule('S',"9S>S");
 
   std::string result = l_system.ExecuteProductions(3);
   std::cout << result << std::endl;
