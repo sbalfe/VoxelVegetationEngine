@@ -5,7 +5,7 @@
 #include "Lindenmayer.h"
 
 void Lindenmayer::ProcessString(int length) {
-  std::cout << "processing string" << std::endl;
+
   branch_length_ = length;
   turtle_position_ = {0,0,0};
   turtle_direction_ = {0,1,0};
@@ -48,6 +48,8 @@ void Lindenmayer::ProcessString(int length) {
     else if (c == '/'){
       Rotate(Axis::kY,-1);
     }
+
+    // figure out where we are in our grid for every increment forward
     else if (c == '>'){
       Position initial_position = turtle_position_;
       for (uint32_t i {0}; i < branch_length_; ++i){
@@ -67,7 +69,7 @@ void Lindenmayer::Place(uint32_t t, glm::dvec3 initial_position) {
   for (auto x {0}; x < length_; ++x) {
     auto store = turtle_position_;
     for (auto y {0}; y < width_; ++y) {
-      renderer_->AddVoxel(new Voxel{colours_[3], turtle_position_, indices_});
+      renderer_->AddVoxel(new Voxel{Colour{0,1,0}, turtle_position_, indices_});
       turtle_position_.Move(Movement::kRight);
     }
     store.Move(Movement::kForward);
@@ -82,15 +84,15 @@ void Lindenmayer::Rotate(Lindenmayer::Axis axis, float sign) {
   glm::dmat4 rotation_matrix;
   switch(axis){
     case Axis::kX: {
-      rotation_matrix = glm::rotate(glm::mat4(1.0), sign * angle, glm::vec3{1,0,0});
+      rotation_matrix = glm::rotate(glm::mat4(1.0), sign * angle_, glm::vec3{1,0,0});
       break;
     }
     case Axis::kY: {
-      rotation_matrix = glm::rotate(glm::mat4(1.0), sign * angle , glm::vec3{0,1,0});
+      rotation_matrix = glm::rotate(glm::mat4(1.0), sign * angle_ , glm::vec3{0,1,0});
       break;
     }
     case Axis::kZ : {
-      rotation_matrix = glm::rotate(glm::mat4(1.0), sign * angle, glm::vec3{0,0,1});
+      rotation_matrix = glm::rotate(glm::mat4(1.0), sign * angle_, glm::vec3{0,0,1});
       break;
     }
   }
@@ -139,7 +141,7 @@ void Lindenmayer::CreateSphere(Position center) {
       for (float z = center.z() - side; z <= center.z() + side; z ++) {
         Position pos = { static_cast<double>(x), static_cast<double>(y), static_cast<double>(z) };
         if (distance_calc(pos, center) <= radius) {
-          renderer_->AddVoxel(new Voxel{colours_[1], pos, indices_});
+          renderer_->AddVoxel(new Voxel{Colour{0,0,1}, pos, indices_});
         }
       }
     }

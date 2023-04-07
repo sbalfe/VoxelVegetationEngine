@@ -76,7 +76,7 @@ class Lindenmayer {
   std::string result_;
   std::map<char, std::string> rules_;
   //std::map<char, Direction> direction_key_map_;
-  float angle = 18.0f;
+  float angle_ = 18.0f;
   std::unique_ptr<Renderer>& renderer_;
   std::vector<uint32_t> indices_;
   int current_colour_ {0};
