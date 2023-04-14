@@ -5,26 +5,25 @@
 #ifndef VOXEL_RENDERER_H
 #define VOXEL_RENDERER_H
 
-#include <SDL2/SDL.h>
+#include "../ImGui/imgui.h"
+#include "../ImGui/imgui_impl_opengl3.h"
+#include "../ImGui/imgui_impl_sdl.h"
+#include "../ResourceManagers/Shader.h"
+#include "../stb_image.h"
+#include "Camera.h"
+#include "Voxel.h"
+#include "buffer_data.h"
 #include <GL/glew.h>
+#include <SDL2/SDL.h>
+#include <fmt/format.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <vector>
-#include "../ResourceManagers/Shader.h"
-#include "Camera.h"
-#include "Block.h"
-#include "../stb_image.h"
-#include <fmt/format.h>
 #include <algorithm>
 #include <array>
 #include <filesystem>
 #include <iostream>
-#include "buffer_data.h"
-#include "../ImGui/imgui.h"
-#include "../ImGui/imgui_impl_sdl.h"
-#include "../ImGui/imgui_impl_opengl3.h"
-
+#include <vector>
 
 class Renderer {
  public:

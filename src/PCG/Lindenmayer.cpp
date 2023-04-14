@@ -122,6 +122,9 @@ void Lindenmayer::ProcessTier(uint32_t tier) {
   }
 }
 
+
+//void Lindenmayer::uploadAsset()
+
 void Lindenmayer::CreateSphere(Position center) {
   auto distance_calc = [](Position pos, Position center) {
     return sqrt((pos.x() - center.x())
@@ -131,7 +134,7 @@ void Lindenmayer::CreateSphere(Position center) {
                 + (pos.z() - center.z())
                       * (pos.z() - center.z()));
   };
-  float radius {8};
+  float radius {};
   float side = radius * 0.05f;
   auto start_x = center.x() - side;
   auto start_y = center.y() - side;

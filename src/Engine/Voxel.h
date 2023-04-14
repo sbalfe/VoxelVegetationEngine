@@ -2,8 +2,8 @@
 // Created by shriller44 on 12/25/22.
 //
 
-#ifndef VOXEL_BLOCK_H
-#define VOXEL_BLOCK_H
+#ifndef VOXEL_VOXEL_H
+#define VOXEL_VOXEL_H
 #include <array>
 #include <cstdint>
 #include <vector>
@@ -124,4 +124,4 @@ struct Voxel {
 };
 
 
-#endif  // VOXEL_BLOCK_H
+#endif  // VOXEL_VOXEL_H
