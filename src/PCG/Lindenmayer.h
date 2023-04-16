@@ -25,7 +25,6 @@
 /* self imports */
 
 #include "../Engine/Renderer.h"
-#include "../FastNoiseLite-1.0.3/Cpp/FastNoiseLite.h"
 #include "src/Engine/Chunk/Chunk.h"
 #include "src/Engine/Chunk/Position.h"
 #include "src/Engine/Voxel/Voxel.h"

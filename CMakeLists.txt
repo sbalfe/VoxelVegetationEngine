@@ -10,7 +10,7 @@ add_library(imgui # Main Imgui files
         ./src/ImGui/imgui_tables.cpp ./src/ImGui/imgui_widgets.cpp
         # SDL2+OpenGL-specific files
         ./src/ImGui/imgui_impl_sdl.cpp
-        ./src/ImGui/imgui_impl_opengl3.cpp src/Engine/Voxel/Voxel.cpp)
+        ./src/ImGui/imgui_impl_opengl3.cpp src/Engine/Voxel/Voxel.cpp src/Engine/GUI.cpp src/Engine/GUI.h)
 
 add_executable(Voxel
         src/ResourceManagers/Shader.cpp

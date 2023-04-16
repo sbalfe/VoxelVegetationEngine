@@ -61,7 +61,7 @@ int main(){
 
   for (should_run = true; should_run;) {
     SDL_Event event;
-    renderer->processKeyboard();
+    renderer->HandleKeyboard();
     while (SDL_PollEvent(&event)) {
       ImGui_ImplSDL2_ProcessEvent(&event);
       switch (event.type) {

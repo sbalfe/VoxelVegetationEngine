@@ -11,6 +11,7 @@
 #include "../ResourceManagers/Shader.h"
 #include "../stb_image.h"
 #include "src/Engine/Camera/Camera.h"
+#include "src/Engine/Chunk/Chunk.h"
 #include "src/Engine/Data/buffer_data.h"
 #include "src/Engine/Voxel/Voxel.h"
 #include "src/Engine/old/Voxel_old.h"
@@ -35,7 +36,18 @@ class Renderer {
     int branch_length_;
   };
 
-  Renderer(uint32_t screen_width, uint32_t screen_height): screen_width_{screen_width}, screen_height_{screen_height}{
+  Renderer(uint32_t screen_width, uint32_t screen_height)
+      :screen_width_{screen_width},
+        screen_height_{screen_height},
+        show {true},
+        branch_length_ {4},
+        production_count_ {4},
+        min{},
+        max{100},
+        delta_time_ {0.0f},
+        last_frame_ {0.0f},
+        width_ {},height_ {},channels_ {},state_{},texture1_{}
+        {
     state_ = RenderState{20, 3, 4};
     // Initialize SDL Video
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -88,9 +100,6 @@ class Renderer {
 
     /****** Camera ******/
     camera_ = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
-    last_x_ = static_cast<float>(screen_height_) / 2.0f;
-    last_y_ = static_cast<float>(screen_width_) / 2.0f;
-    first_mouse_ = true;
     /*******************/
 
     /** Shaders **/
@@ -131,7 +140,7 @@ class Renderer {
   [[nodiscard]] RenderState GetState() const { return {20, branch_length_, production_count_};}
 
 
-  void FillBuffers(std::unique_ptr<Voxel>& voxel){
+  static void FillBuffers(std::unique_ptr<Voxel>& voxel){
     glGenVertexArrays(1, &voxel->vao_);
     glBindVertexArray(voxel->vao_);
 
@@ -180,7 +189,7 @@ class Renderer {
     ImGui::PushID(label);
     ImGui::Text("%s", label);
     ImGui::SameLine();
-    bool result = ImGui::SliderInt("", value, min, max);
+    bool result = ImGui::SliderInt("", value, static_cast<int>(min), static_cast<int>(max));
     ImGui::PopID();
     return result;
   }
@@ -209,8 +218,8 @@ class Renderer {
   void Render() {
     glEnable(GL_DEPTH_TEST);
     auto currentFrame = static_cast<float>(SDL_GetTicks());
-    deltaTime = currentFrame - lastFrame;
-    lastFrame = currentFrame;
+    delta_time_ = currentFrame - last_frame_;
+    last_frame_ = currentFrame;
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader_->use();
@@ -218,7 +227,7 @@ class Renderer {
     if (show) {
       glm::mat4 projection = glm::perspective(
           glm::radians(camera_->Zoom),
-          (float)(screen_width_) / (float)(screen_height_), 0.1f, 100.0f);
+          (double)(screen_width_) / (double)(screen_height_), 0.1, 100.0);
       glm::mat4 view = camera_->GetViewMatrix();
 
       shader_->setMat4("projection", projection);
@@ -241,37 +250,19 @@ class Renderer {
     SDL_GL_SwapWindow(window_);
   }
 
-  void ProcessMouse(float x_pos, float y_pos){
-    if (first_mouse_)
-    {
-      last_x_ = x_pos;
-      last_y_ = y_pos;
-      first_mouse_ = false;
+  void ProcessChunk(Chunk& chunk){
+    for (auto& voxel: chunk){
+      AddVoxel(voxel);
     }
-
-    float x_offset = x_pos - last_x_;
-    float y_offset = last_y_ - y_pos; // reversed since y-coordinates go from bottom to top
-
-    last_x_ = x_pos;
-    last_y_ = y_pos;
-
-    camera_->ProcessMouseMovement(x_offset, y_offset);
   }
 
-  void processKeyboard(){
+  void HandleKeyboard(){
     auto state = SDL_GetKeyboardState(nullptr);
-    if (state[SDL_GetScancodeFromKey(SDLK_w)]){
-      camera_->ProcessKeyboard(FORWARD, deltaTime);
-    }
-    else if (state[SDL_GetScancodeFromKey(SDLK_s)]){
-      camera_->ProcessKeyboard(BACKWARD, deltaTime);
-    }
-    else if (state[SDL_GetScancodeFromKey(SDLK_a)]){
-      camera_->ProcessKeyboard(LEFT, deltaTime);
-    }
-    else if (state[SDL_GetScancodeFromKey(SDLK_d)]){
-      camera_->ProcessKeyboard(RIGHT, deltaTime);
-    }
+    camera_->ProcessKeyboard(state, delta_time_);
+  }
+
+  void ProcessMouse(double x_pos, double y_pos){
+    camera_->ProcessMouse(x_pos, y_pos);
   }
 
   [[nodiscard]] auto ObtainLength() const{ return branch_length_; }
@@ -280,43 +271,32 @@ class Renderer {
   bool process_again_ {false};
  private:
 
-  // SDL window context
+  /* Camera */
+  Camera *camera_;
+
+  /* SDL */
+  SDL_GLContext context_;
   SDL_Window *window_;
   uint32_t screen_width_;
   uint32_t screen_height_;
 
-  // SDL GL context
-  SDL_GLContext context_;
+  /* ImGui */
+  bool show;
+  int branch_length_;
+  int production_count_;
+  const uint32_t min;
+  const uint32_t max;
+
+  /* Render */
+  RenderState state_;
+  std::vector<std::unique_ptr<Voxel>> voxels_;
+  float delta_time_;
+  float last_frame_;
+  uint32_t texture1_;
+  Shader *shader_;
   int width_;
   int height_;
   int channels_;
-
-  // Buffer identifiers;
-  uint32_t vbo_, texture1_;
-
-  // Shader we are using
-  Shader *shader_;
-
-  // Camera
-  Camera *camera_;
-  float last_x_;
-  float last_y_;
-  bool first_mouse_;
-
-  // timings
-  float deltaTime = 0.0f;	// time between current frame and last frame
-  float lastFrame = 0.0f;
-
-  bool show {1};
-  int branch_length_ {4};
-  int production_count_{4};
-
-  RenderState state_;
-  const uint32_t min {};
-  const uint32_t max {100};
-
-  // Voxel_old Data
-  std::vector<std::unique_ptr<Voxel>> voxels_;
 };
 
 #endif  // VOXEL_RENDERER_H

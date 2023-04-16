@@ -128,7 +128,9 @@ void Lindenmayer::ShowTurtleVoxel() {}
 void Lindenmayer::TestFill() {
 
   auto& blocks_ = plant_chunk_.GetVoxels();
+
   for (const auto& block_ptr: blocks_){
+
     auto [x,y,z] = block_ptr->Position();
 
     std::random_device rd;

@@ -8,10 +8,11 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
 #include <vector>
+#include <SDL2/SDL.h>
 
-// Defines several possible options for camera movement. Used as abstraction to stay away from window-system specific input methods
+// Defines several possible options for camera movement. Used as abstraction to
+// stay away from window-system specific input methods
 enum Camera_Movement {
   FORWARD,
   BACKWARD,
@@ -32,20 +33,6 @@ const float ZOOM        =  45.0f;
 class Camera
 {
  public:
-  // camera Attributes
-  glm::vec3 Position;
-  glm::vec3 Front;
-  glm::vec3 Up;
-  glm::vec3 Right;
-  glm::vec3 WorldUp;
-  // euler Angles
-  float Yaw;
-  float Pitch;
-  // camera options
-  float MovementSpeed;
-  float MouseSensitivity;
-  float Zoom;
-
   // constructor with vectors
   Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
   {
@@ -62,6 +49,9 @@ class Camera
     WorldUp = glm::vec3(upX, upY, upZ);
     Yaw = yaw;
     Pitch = pitch;
+    last_x_ = static_cast<float>(1000) / 2.0f;
+    last_y_ = static_cast<float>(600) / 2.0f;
+    first_mouse_ = true;
     updateCameraVectors();
   }
 
@@ -72,7 +62,7 @@ class Camera
   }
 
   // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)
-  void ProcessKeyboard(Camera_Movement direction, float deltaTime)
+  void Update(Camera_Movement direction, float deltaTime)
   {
     float velocity = MovementSpeed * deltaTime;
     if (direction == FORWARD)
@@ -86,7 +76,7 @@ class Camera
   }
 
   // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
-  void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
+  void ProcessMouseMovement(double xoffset, double yoffset, GLboolean constrainPitch = true)
   {
     xoffset *= MouseSensitivity;
     yoffset *= MouseSensitivity;
@@ -118,6 +108,59 @@ class Camera
       Zoom = 45.0f;
   }
 
+  void ProcessKeyboard(const Uint8* state, double delta_time){
+    if (state[SDL_GetScancodeFromKey(SDLK_w)]){
+      Update(FORWARD, delta_time);
+    }
+    else if (state[SDL_GetScancodeFromKey(SDLK_s)]){
+      Update(BACKWARD, delta_time);
+    }
+    else if (state[SDL_GetScancodeFromKey(SDLK_a)]){
+      Update(LEFT, delta_time);
+    }
+    else if (state[SDL_GetScancodeFromKey(SDLK_d)]){
+      Update(RIGHT, delta_time);
+    }
+  }
+
+  void ProcessMouse(double x_pos, double y_pos){
+    if (first_mouse_)
+    {
+      last_x_ = x_pos;
+      last_y_ = y_pos;
+      first_mouse_ = false;
+    }
+
+    double x_offset = x_pos - last_x_;
+    double y_offset = last_y_ - y_pos; // reversed since y-coordinates go from bottom to top
+
+    last_x_ = x_pos;
+    last_y_ = y_pos;
+
+    ProcessMouseMovement(x_offset, y_offset);
+  }
+
+ public:
+
+  // camera Attributes
+  glm::vec3 Position;
+  glm::vec3 Front;
+  glm::vec3 Up;
+  glm::vec3 Right;
+  glm::vec3 WorldUp;
+
+  // euler Angles
+  double Yaw;
+  double Pitch;
+
+  // camera options
+  float MovementSpeed;
+  float MouseSensitivity;
+  double Zoom;
+  double last_x_;
+  double last_y_;
+  bool first_mouse_;
+
  private:
   // calculates the front vector from the Camera's (updated) Euler Angles
   void updateCameraVectors()
@@ -132,6 +175,7 @@ class Camera
     Right = glm::normalize(glm::cross(Front, WorldUp));  // normalize the vectors, because their length gets closer to 0 the more you look up or down which results in slower movement.
     Up    = glm::normalize(glm::cross(Right, Front));
   }
+
 };
 
 
