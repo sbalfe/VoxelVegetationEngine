@@ -10,9 +10,10 @@
 #include "../ImGui/imgui_impl_sdl.h"
 #include "../ResourceManagers/Shader.h"
 #include "../stb_image.h"
-#include "Camera.h"
-#include "Voxel.h"
-#include "buffer_data.h"
+#include "src/Engine/Camera/Camera.h"
+#include "src/Engine/Data/buffer_data.h"
+#include "src/Engine/Voxel/Voxel.h"
+#include "src/Engine/old/Voxel_old.h"
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <fmt/format.h>
@@ -35,7 +36,7 @@ class Renderer {
   };
 
   Renderer(uint32_t screen_width, uint32_t screen_height): screen_width_{screen_width}, screen_height_{screen_height}{
-    state_ = RenderState{20, 3};
+    state_ = RenderState{20, 3, 4};
     // Initialize SDL Video
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
       std::cout << "test" << std::endl;
@@ -127,48 +128,49 @@ class Renderer {
     /*******************/
   }
 
-  [[nodiscard]] RenderState GetState() const { return state_;}
+  [[nodiscard]] RenderState GetState() const { return {20, branch_length_, production_count_};}
 
-  void AddVoxel(Voxel* voxel){
-    voxel->position = voxel->position / 20;
-    std::cout << "before render: " << voxel->position << std::endl;
-    glGenVertexArrays(1, &voxel->vao);
-    glBindVertexArray(voxel->vao);
 
-    glGenBuffers(1, &voxel->vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, voxel->vbo);
+  void FillBuffers(std::unique_ptr<Voxel>& voxel){
+    glGenVertexArrays(1, &voxel->vao_);
+    glBindVertexArray(voxel->vao_);
+
+    glGenBuffers(1, &voxel->vbo_);
+    glBindBuffer(GL_ARRAY_BUFFER, voxel->vbo_);
 
     glBufferData(GL_ARRAY_BUFFER, shriller::cube_data.size()  * sizeof(float) , shriller::cube_data.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
     glEnableVertexAttribArray(0);
 
-    glGenBuffers(1, &voxel->ebo);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, voxel->ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(voxel->indices.size()  * sizeof(int)), voxel->indices.data(), GL_STATIC_DRAW);
+    glGenBuffers(1, &voxel->ebo_);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, voxel->ebo_);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(voxel->indices_.size()  * sizeof(int)), voxel->indices_.data(), GL_STATIC_DRAW);
 
     for (int i = 0; i < 108; i+=3) {
-      voxel->colour_data[i] = voxel->colour.r;
-      voxel->colour_data[i+1] = voxel->colour.g;
-      voxel->colour_data[i+2] = voxel->colour.b;
+      voxel->colour_data_[i] = voxel->colour_.r;
+      voxel->colour_data_[i+1] = voxel->colour_.g;
+      voxel->colour_data_[i+2] = voxel->colour_.b;
     }
 
-    glGenBuffers(1, &voxel->colour_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, voxel->colour_buffer);
-    glBufferData(GL_ARRAY_BUFFER, voxel->colour_data.size() * sizeof(float), voxel->colour_data.data(), GL_STATIC_DRAW);
+    glGenBuffers(1, &voxel->colour_buffer_);
+    glBindBuffer(GL_ARRAY_BUFFER, voxel->colour_buffer_);
+    glBufferData(GL_ARRAY_BUFFER, voxel->colour_data_.size() * sizeof(float), voxel->colour_data_.data(), GL_STATIC_DRAW);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,0, nullptr);
     glEnableVertexAttribArray(1);
+  }
 
-    voxels_.emplace_back(voxel);
+  void AddVoxel(std::unique_ptr<Voxel>& voxel){
+    FillBuffers(voxel);
+    voxel->world_position_ = voxel->chunk_position_ / 4;
+    voxels_.emplace_back(std::move(voxel));
   }
 
   void ResetVoxels(){
-    // Deallocate all voxel buffers
     for (auto& voxel : voxels_) {
-      glDeleteVertexArrays(1, &voxel->vao);
-      glDeleteBuffers(1, &voxel->vbo);
-      glDeleteBuffers(1, &voxel->ebo);
-      glDeleteBuffers(1, &voxel->colour_buffer);
-      delete voxel;
+      glDeleteVertexArrays(1, &voxel->vao_);
+      glDeleteBuffers(1, &voxel->vbo_);
+      glDeleteBuffers(1, &voxel->ebo_);
+      glDeleteBuffers(1, &voxel->colour_buffer_);
     }
     voxels_.clear();
   }
@@ -222,14 +224,14 @@ class Renderer {
       shader_->setMat4("projection", projection);
       shader_->setMat4("view", view);
 
-      for (const auto* v : voxels_) {
-        glBindVertexArray(v->vao);
+      for (const auto& v : voxels_) {
+        glBindVertexArray(v->vao_);
         glm::mat4 model = glm::mat4(1.0f);
-        glm::vec3 scale = glm::vec3(0.05, 0.05, 0.05);
-        model = glm::translate(model, {v->position.x(), v->position.y(), v->position.z()});
+        glm::vec3 scale = glm::vec3(0.25, 0.25, 0.25);
+        model = glm::translate(model, {v->world_position_.x, v->world_position_.y, v->world_position_.z});
         model = glm::scale(model, scale);
         shader_->setMat4("model", model);
-        glDrawElements(GL_TRIANGLES, static_cast<int>(v->indices.size()),GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, static_cast<int>(v->indices_.size()),GL_UNSIGNED_INT, nullptr);
       }
     }
 
@@ -240,7 +242,6 @@ class Renderer {
   }
 
   void ProcessMouse(float x_pos, float y_pos){
-
     if (first_mouse_)
     {
       last_x_ = x_pos;
@@ -306,17 +307,16 @@ class Renderer {
   float deltaTime = 0.0f;	// time between current frame and last frame
   float lastFrame = 0.0f;
 
-  bool show {};
-  int branch_length_ {};
-  int production_count_{};
+  bool show {1};
+  int branch_length_ {4};
+  int production_count_{4};
 
   RenderState state_;
   const uint32_t min {};
   const uint32_t max {100};
 
-
-  // Voxel Data
-  std::vector<Voxel*> voxels_;
+  // Voxel_old Data
+  std::vector<std::unique_ptr<Voxel>> voxels_;
 };
 
 #endif  // VOXEL_RENDERER_H

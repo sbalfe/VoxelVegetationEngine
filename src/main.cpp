@@ -32,6 +32,7 @@ int main(){
                                          5,7,4
                                         }};
 
+
   /*
    * 0-9 are the values used to alter the width / length parameters of the generated branch
    * > advances the turtle forward in the current orientation defined by a branch length parameter
@@ -44,14 +45,16 @@ int main(){
    * \\ / - rotate on y axis
    * */
 
-  l_system.AddRule('p',"9I+[p+#]--//[--#]I[++#]-[p#]++p#");
-  l_system.AddRule('I', ">S[//&&#][//^^#]>S");
-  l_system.AddRule('S',"9S>S");
+  l_system.TestFill();
 
-  std::string result = l_system.ExecuteProductions(3);
-  std::cout << result << std::endl;
+  //l_system.AddRule('p',"9I+[p+#]--//[--#]I[++#]-[p#]++p#");
+  //l_system.AddRule('I', ">S[//&&#][//^^#]>S");
+  //l_system.AddRule('S',"9S>S");
 
-  l_system.ProcessString(3);
+ std::string result = l_system.ExecuteProductions(3);
+ // std::cout << result << std::endl;
+
+  //l_system.ProcessString(3);
 
   bool escaped {};
   bool should_run;

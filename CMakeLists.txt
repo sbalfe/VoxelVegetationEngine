@@ -10,18 +10,18 @@ add_library(imgui # Main Imgui files
         ./src/ImGui/imgui_tables.cpp ./src/ImGui/imgui_widgets.cpp
         # SDL2+OpenGL-specific files
         ./src/ImGui/imgui_impl_sdl.cpp
-        ./src/ImGui/imgui_impl_opengl3.cpp src/Engine/VegetationChunK.cpp src/Engine/VegetationChunK.h)
+        ./src/ImGui/imgui_impl_opengl3.cpp src/Engine/Voxel/Voxel.cpp)
 
 add_executable(Voxel
         src/ResourceManagers/Shader.cpp
         src/Glad/glad.c
         src/stb_image.h
-        src/Engine/Camera.h
-        src/Engine/Voxel.h
+        src/Engine/Camera/Camera.h
+        src/Engine/old/Voxel_old.h
         src/Engine/Renderer.h
-        src/main.cpp src/PCG/Lindenmayer.cpp src/PCG/Lindenmayer.h src/FastNoiseLite-1.0.3/Cpp/FastNoiseLite.h src/delete.cpp)
+        src/main.cpp src/PCG/Lindenmayer.cpp src/PCG/Lindenmayer.h src/Engine/Chunk/Chunk.cpp src/Engine/Voxel/Voxel.h src/Engine/Chunk/Position.h)
 
-#add_executable(Voxel src/test.cpp)
+#add_executable(Voxel_old src/test.cpp)
 
 find_package(OpenGL)
 find_package(SDL2 REQUIRED)
