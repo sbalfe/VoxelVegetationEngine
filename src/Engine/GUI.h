@@ -21,7 +21,7 @@ class GUI {
         SDL_WINDOW_OPENGL);
 
     if (window_ == nullptr) {
-      fprintf(stderr, "failed to create main window\n");
+      fprintf(stderr, "Failed to create main window\n");
       SDL_Quit();
     }
 
