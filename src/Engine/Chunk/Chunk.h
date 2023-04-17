@@ -1,3 +1,5 @@
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "cert-dcl21-cpp"
 //
 // Created by shriller44 on 10/9/22.
 //
@@ -16,20 +18,30 @@
 #include <utility>
 #include <vector>
 
-namespace {
-
-  struct Size {
-    uint32_t l;
-    uint32_t w;
-    uint32_t h;
-    [[nodiscard]] constexpr uint32_t size() const {return l * w * h;}
-  };
-  constexpr Size chunkSize{100,100,20};
-  constexpr uint32_t size = chunkSize.size();
-}
+//namespace {
+//
+//  struct Size {
+//    uint32_t l;
+//    uint32_t w;
+//    uint32_t h;
+//    [[nodiscard]] constexpr uint32_t size() const {return l * w * h;}
+//  };
+//  constexpr Size chunkSize{5,5,5};
+//  constexpr uint32_t size = chunkSize.size();
+//}
 
 class Chunk {
  public:
+
+  struct Dimensions {
+
+    Dimensions(uint32_t l, uint32_t w, uint32_t h):l_{l}, w_{w}, h_{h}, size_ {l * w * h} {}
+
+    uint32_t l_;
+    uint32_t w_;
+    uint32_t h_;
+    uint32_t size_;
+  };
 
   struct Iterator {
     using iterator_category = std::forward_iterator_tag;
@@ -50,6 +62,7 @@ class Chunk {
       ++(*this);
       return tmp;
     }
+
     friend bool operator== (const Iterator& a, const Iterator& b) { return a.ptr_ == b.ptr_; };
     friend bool operator!= (const Iterator& a, const Iterator& b) { return a.ptr_ != b.ptr_; };
 
@@ -58,24 +71,22 @@ class Chunk {
   };
 
   Iterator begin()  { return Iterator(&voxels_[0]); }
-  Iterator end()  { return Iterator(&voxels_[size]); }
+  Iterator end()  { return Iterator(&voxels_[chunk_dimensions_.size_]); }
 
-  Chunk();
+  explicit Chunk(Chunk::Dimensions dimensions);
   ~Chunk() = default;
   std::vector<std::unique_ptr<Voxel>>& GetVoxels ();
   [[nodiscard]] Voxel const& GetVoxel(const Position &pos) const;
   Voxel operator[](Position index) const;
-`
-  /* add later*/
- //  void Update(float dt);
- //  void Render();
+
  private:
-
-
   void GenerateMesh() const;
-  static double ConvertIndex(const Position& pos);
+  [[nodiscard]] double ConvertIndex(const Position& pos) const;
   void AddVoxel(Position const& pos);
+  Dimensions chunk_dimensions_;
   std::vector<std::unique_ptr<Voxel>> voxels_{};
 };
 
 #endif //VOXEL_CHUNK_H
+
+#pragma clang diagnostic pop

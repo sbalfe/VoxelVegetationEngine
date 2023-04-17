@@ -13,7 +13,7 @@ Voxel::Voxel(Position chunk_position)
       vbo_{},
       active_{true},
       world_position_{},
-      colour_{}{}
+      colour_{1,1,0}{}
 
 void Voxel::SetActive(bool active){ active_ = active; }
 

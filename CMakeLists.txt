@@ -18,8 +18,12 @@ add_executable(Voxel
         src/stb_image.h
         src/Engine/Camera/Camera.h
         src/Engine/old/Voxel_old.h
-        src/Engine/Renderer.h
-        src/main.cpp src/PCG/Lindenmayer.cpp src/PCG/Lindenmayer.h src/Engine/Chunk/Chunk.cpp src/Engine/Voxel/Voxel.h src/Engine/Chunk/Position.h)
+        src/main.cpp
+        src/PCG/Lindenmayer.cpp
+        src/Engine/Renderer.cpp
+        src/Engine/Chunk/Chunk.cpp
+        src/Engine/Voxel/Voxel.h
+        src/Engine/Chunk/Position.h)
 
 #add_executable(Voxel_old src/test.cpp)
 

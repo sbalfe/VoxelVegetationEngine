@@ -5,17 +5,25 @@
 #include "Lindenmayer.h"
 
 
-void Lindenmayer::SetFunctions(){
+Lindenmayer::Lindenmayer(std::string axiom, std::unique_ptr<Renderer>& renderer, std::vector<uint32_t> indices, Position initial_position)
+    : turtle_state_ {{0,0,0}, initial_position, {2,2} },
+      branch_length_ {10},
+      symbol_functions_{},
+      dimensions_map_{{0, BranchDimension {7,7}}, {1, BranchDimension{4,4}}, {2, BranchDimension{3,3}}} ,axiom_ {std::move(axiom)},
+      renderer_{renderer},
+      indices_{std::move(indices)},
+      plant_chunk_ {Chunk::Dimensions(5,5,5)} {
+  SetFunctions();
+}
 
+void Lindenmayer::SetFunctions(){
   /* place assets */
   symbol_functions_['#'] = [&](){};
 
   /* move turtle and place voxels */
   symbol_functions_['>'] = [&](){
     Position turtle_voxel_position = turtle_state_.chunk_voxel_position_;
-    for (uint32_t i {0}; i < branch_length_; ++i){
-
-    }
+    for (uint32_t i {0}; i < branch_length_; ++i){}
   };
 
   /* branching */
@@ -131,7 +139,7 @@ void Lindenmayer::TestFill() {
 
   for (const auto& block_ptr: blocks_){
 
-    auto [x,y,z] = block_ptr->Position();
+   // auto [x,y,z] = block_ptr->Position();
 
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -139,7 +147,7 @@ void Lindenmayer::TestFill() {
     float r = distrib(gen); // generate a random float between 0 and 1
     float g = distrib(gen); // generate a random float between 0 and 1
     float b = distrib(gen); // generate a random float between 0 and 1
-    renderer_->AddVoxel();
+    //renderer_->AddVoxel();
   }
 }
 

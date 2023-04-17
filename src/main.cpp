@@ -7,30 +7,36 @@
 #include "PCG/Lindenmayer.h"
 #include "fmt/format.h"
 
+void HandleSDLEvent(std::unique_ptr<Renderer>& renderer, SDL_Event& event, bool& should_run, bool& escaped){
+  ImGui_ImplSDL2_ProcessEvent(&event);
+  switch (event.type) {
+    case SDL_QUIT: {
+      should_run = false;
+      SDL_Quit();
+      break;
+    }
+    case SDL_KEYDOWN: {
+      if (event.key.keysym.sym == SDLK_ESCAPE) {
+        escaped = !escaped;
+      }
+    }
+    case SDL_MOUSEMOTION: {
+      if (!escaped) {
+        int x, y;
+        SDL_GetMouseState(&x, &y);
+        renderer->ProcessMouse(static_cast<float>(x),
+                               static_cast<float>(y));
+      }
+    }
+  }
+}
+
 int main(){
 
   // Renderer fills the voxel
   auto renderer = std::make_unique<Renderer>(1000,600);
 
-  Lindenmayer l_system {"p", renderer, {// front quad
-                                         0,1,3,
-                                         2,3,1,
-                                         // left quad
-                                         2,6,3,
-                                         3,6,7,
-                                         //right quad
-                                         0,1,4,
-                                         5,0,4,
-                                         //bottom quad
-                                         2,6,1,
-                                         4,6,1,
-                                         //top quad
-                                         3,0,7,
-                                         7,5,0,
-                                         //back quad
-                                         7,6,4,
-                                         5,7,4
-                                        }};
+// s
 
 
   /*
@@ -45,13 +51,13 @@ int main(){
    * \\ / - rotate on y axis
    * */
 
-  l_system.TestFill();
+//  l_system.TestFill();
 
   //l_system.AddRule('p',"9I+[p+#]--//[--#]I[++#]-[p#]++p#");
   //l_system.AddRule('I', ">S[//&&#][//^^#]>S");
   //l_system.AddRule('S',"9S>S");
 
- std::string result = l_system.ExecuteProductions(3);
+// std::string result = l_system.ExecuteProductions(3);
  // std::cout << result << std::endl;
 
   //l_system.ProcessString(3);
@@ -59,46 +65,18 @@ int main(){
   bool escaped {};
   bool should_run;
 
+  Chunk test_chunk {{25,5,40}};
+  renderer->ProcessChunk(test_chunk);
+
   for (should_run = true; should_run;) {
     SDL_Event event;
-    renderer->HandleKeyboard();
+    //renderer->HandleKeyboard();
     while (SDL_PollEvent(&event)) {
-      ImGui_ImplSDL2_ProcessEvent(&event);
-      switch (event.type) {
-        case SDL_QUIT: {
-          should_run = false;
-          SDL_Quit();
-          break;
-        }
-        case SDL_KEYDOWN: {
-          if (event.key.keysym.sym == SDLK_ESCAPE){
-            escaped = !escaped;
-          }
-        }
-        case SDL_MOUSEMOTION: {
-          if (!escaped) {
-            int x, y;
-            SDL_GetMouseState(&x, &y);
-            renderer->ProcessMouse(static_cast<float>(x),
-                                   static_cast<float>(y));
-          }
-        }
-      }
+      HandleSDLEvent(renderer, event, should_run, escaped);
     }
-
-    // render GUI
-    renderer->ShowGUI();
-    auto state = renderer->GetState();
-
-    if (renderer->process_again_){
-      renderer->process_again_ = false;
-      l_system.ExecuteProductions(state.production_count_);
-      l_system.ProcessString(state.branch_length_);
-    }
-
+    renderer->HandleKeyboard();
     renderer->Render();
   }
-
   printf("Exiting...\n");
   return 0;
 }

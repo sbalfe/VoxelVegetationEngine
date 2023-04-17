@@ -4,11 +4,11 @@
 
 #include "src/Engine/Chunk/Chunk.h"
 
-Chunk::Chunk() {
-  voxels_.resize(size);
-  for (uint32_t x = 0; x <  chunkSize.l; x++) {
-    for (uint32_t y = 0; y < chunkSize.w ; y++) {
-      for (uint32_t z = 0; z < chunkSize.h; z++) {
+Chunk::Chunk(Chunk::Dimensions dimensions): chunk_dimensions_(dimensions) {
+  voxels_.resize(dimensions.size_);
+  for (uint32_t x = 0; x <  chunk_dimensions_.l_; x++) {
+    for (uint32_t y = 0; y < chunk_dimensions_.w_ ; y++) {
+      for (uint32_t z = 0; z < chunk_dimensions_.h_; z++) {
         AddVoxel({static_cast<double>(x), static_cast<double>(y), static_cast<double>(z)});
       }
     }
@@ -16,9 +16,9 @@ Chunk::Chunk() {
   this->GenerateMesh();
 }
 
-double Chunk::ConvertIndex(const Position &pos)  {
+double Chunk::ConvertIndex(const Position &pos)  const {
   auto [x,y,z] = pos();
-  return x + (y * chunkSize.l) + (z * chunkSize.l * chunkSize.w);
+  return x + (y * chunk_dimensions_.l_) + (z * chunk_dimensions_.l_ * chunk_dimensions_.w_);
 }
 
 Voxel const& Chunk::GetVoxel(const Position &pos) const {
@@ -30,9 +30,9 @@ void Chunk::AddVoxel(const Position &pos) {
 }
 
 void Chunk::GenerateMesh() const {
-  for (uint32_t x = 0; x <  chunkSize.l; x++) {
-    for (uint32_t y = 0; y < chunkSize.w ; y++) {
-      for (uint32_t z = 0; z < chunkSize.h; z++) {
+  for (uint32_t x = 0; x <  chunk_dimensions_.l_; x++) {
+    for (uint32_t y = 0; y < chunk_dimensions_.w_ ; y++) {
+      for (uint32_t z = 0; z < chunk_dimensions_.h_; z++) {
        // if (GetVoxel({x,y,z})){}
       }
     }

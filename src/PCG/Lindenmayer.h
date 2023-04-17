@@ -32,10 +32,10 @@
 class Lindenmayer {
 
  public:
+
   enum class Axis {kX,kY,kZ};
 
   struct BranchDimension {
-
     auto Get(){return std::make_tuple(length_, width_);}
     uint32_t length_;
     uint32_t width_;
@@ -47,15 +47,10 @@ class Lindenmayer {
     BranchDimension branch_dimension_;
   };
 
-  explicit Lindenmayer(std::string axiom, std::unique_ptr<Renderer>& renderer, std::vector<uint32_t> indices, Position initial_position)
-      : turtle_state_ {{0,0,0}, initial_position, {2,2} },
-        branch_length_ {10},
-        symbol_functions_{},
-        dimensions_map_{{0, BranchDimension {7,7}}, {1, BranchDimension{4,4}}, {2, BranchDimension{3,3}}} ,axiom_ {std::move(axiom)},
-        renderer_{renderer},
-        indices_{std::move(indices)} {
-    SetFunctions();
-  }
+  explicit Lindenmayer(std::string axiom,
+                       std::unique_ptr<Renderer>& renderer,
+                       std::vector<uint32_t> indices,
+                       Position initial_position);
 
   void SetFunctions();
 
@@ -93,7 +88,7 @@ class Lindenmayer {
   /* graphics */
   std::unique_ptr<Renderer>& renderer_;
   std::vector<uint32_t> indices_;
-  Chunk plant_chunk_ {};
+  Chunk plant_chunk_;
 
   /* state */
   TurtleState turtle_state_;
