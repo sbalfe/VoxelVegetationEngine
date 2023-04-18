@@ -17,6 +17,7 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+#include <fstream>
 
 //namespace {
 //
@@ -78,7 +79,7 @@ class Chunk {
   std::vector<std::unique_ptr<Voxel>>& GetVoxels ();
   [[nodiscard]] Voxel const& GetVoxel(const Position &pos) const;
   Voxel operator[](Position index) const;
-
+  void ExportToObj(const std::string& filename);
  private:
   void GenerateMesh() const;
   [[nodiscard]] double ConvertIndex(const Position& pos) const;

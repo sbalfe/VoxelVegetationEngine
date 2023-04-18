@@ -76,79 +76,22 @@ class GUI {
 
  public:
 
-  GUI(int screen_width, int screen_height){
+  GUI(int screen_width, int screen_height);
 
-    // Initialize SDL Video
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-      std::cout << "test" << std::endl;
-      fprintf(stderr, "Failed to initialize SDL video\n");
-    }
+  void Destroy();
 
-    // Create main window
-    window_ = SDL_CreateWindow(
-        "SDL App",
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        static_cast<int>(screen_width), static_cast<int>(screen_height),
-        SDL_WINDOW_OPENGL);
+  [[nodiscard]] bool FlagSet(Interface::Flags flags) const;
 
-    if (window_ == nullptr) {
-      fprintf(stderr, "Failed to create main window\n");
-      SDL_Quit();
-    }
+  void ShowGUI();
 
-    // Initialize rendering context
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
-    SDL_GL_SetAttribute(
-        SDL_GL_CONTEXT_PROFILE_MASK,
-        SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  void Init() const;
+  void NewFrame() const;
+  void SwapWindow() const;
 
-    /* create opengl context in SDL */
-    context_ = SDL_GL_CreateContext(window_);
-
-    if (context_ == nullptr) {
-      fprintf(stderr, "Failed to create GL context\n");
-      SDL_DestroyWindow(window_);
-      SDL_Quit();
-    }
-
-    imgui_interface_ =  std::make_unique<Interface>(window_);
-
-    SDL_GL_SetSwapInterval(1); // Use VSYNC
-
-  }
-
-  void Destroy(){
-    SDL_GL_DeleteContext(context_);
-    SDL_DestroyWindow(window_);
-    SDL_Quit();
-  }
-
-  [[nodiscard]] bool FlagSet(Interface::Flags flags) const { return imgui_interface_->FlagSet(flags);}
-
-  void ShowGUI(){
-    imgui_interface_->CoreGui();
-  }
-
-  void Init() const {
-    ImGui_ImplSDL2_InitForOpenGL(window_, SDL_GL_GetCurrentContext());
-  }
-
-  void NewFrame() const {
-    ImGui_ImplSDL2_NewFrame(window_);
-  }
-
-  void SwapWindow() const {
-    SDL_GL_SwapWindow(window_);
-  }
-  SDL_Window *window_;
  private:
+  SDL_Window *window_;
   SDL_GLContext context_;
   std::unique_ptr<Interface> imgui_interface_;
-
 };
 
 #endif  // VOXEL_GUI_H

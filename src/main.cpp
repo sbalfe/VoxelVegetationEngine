@@ -65,7 +65,8 @@ int main(){
   bool escaped {};
   bool should_run;
 
-  Chunk test_chunk {{25,5,40}};
+  Chunk test_chunk {{2,2,2}};
+  test_chunk.ExportToObj("../exported_models/chunk.obj");
   renderer->ProcessChunk(test_chunk);
 
   for (should_run = true; should_run;) {

@@ -122,7 +122,9 @@ GUI& Renderer::GetGui(){
 void Renderer::ProcessChunk(Chunk& chunk){
   SetRandomColours(chunk);
   for (auto& voxel: chunk){
-    AddVoxel(voxel);
+    if (voxel){
+      AddVoxel(voxel);
+    }
   }
 }
 

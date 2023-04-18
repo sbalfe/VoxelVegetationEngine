@@ -133,22 +133,5 @@ bool Lindenmayer::AddRule(char key, std::string&& rule){
 
 void Lindenmayer::ShowTurtleVoxel() {}
 
-void Lindenmayer::TestFill() {
-
-  auto& blocks_ = plant_chunk_.GetVoxels();
-
-  for (const auto& block_ptr: blocks_){
-
-   // auto [x,y,z] = block_ptr->Position();
-
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<> distrib(0, 1);
-    float r = distrib(gen); // generate a random float between 0 and 1
-    float g = distrib(gen); // generate a random float between 0 and 1
-    float b = distrib(gen); // generate a random float between 0 and 1
-    //renderer_->AddVoxel();
-  }
-}
 
 
