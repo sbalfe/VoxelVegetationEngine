@@ -1,11 +1,11 @@
 
 
 Chunk::Chunk(uint32_t l, uint32_t w, uint32_t h): chunk_dimensions_ {l,w,h} {
-   std::cout << "NIGGER!" << std::endl;
+
   for (uint32_t x = 0; x <  chunk_dimensions_.l_; x++) {
     for (uint32_t y = 0; y < chunk_dimensions_.w_ ; y++) {
       for (uint32_t z = 0; z < chunk_dimensions_.h_; z++) {
-        std::cout << "NIGGER!" << std::endl;
+
         AddVoxel({static_cast<double>(x), static_cast<double>(y), static_cast<double>(z)});
       }
     }
