@@ -31,25 +31,24 @@
 //  constexpr uint32_t size = chunkSize.size();
 //}
 
+
 class Chunk {
  public:
 
+
   struct Dimensions {
-
-    Dimensions(uint32_t l, uint32_t w, uint32_t h):l_{l}, w_{w}, h_{h}, size_ {l * w * h} {}
-
-    uint32_t l_;
-    uint32_t w_;
-    uint32_t h_;
-    uint32_t size_;
+    Dimensions(uint32_t l, uint32_t w, uint32_t h): l_ {l}, w_ {w}, h_{h} {}
+    static const uint32_t size_ = 10000;
+    uint32_t l_ = 100;
+    uint32_t w_ = 100;
+    uint32_t h_ = 100;
   };
-
   struct Iterator {
     using iterator_category = std::forward_iterator_tag;
     using difference_type   = std::ptrdiff_t;
-    using value_type        = std::unique_ptr<Voxel>;
-    using pointer           = std::unique_ptr<Voxel>*;
-    using reference         = std::unique_ptr<Voxel>&;
+    using value_type        = Voxel;
+    using pointer           = Voxel*;
+    using reference         = Voxel&;
 
     explicit Iterator(pointer ptr) : ptr_ { ptr } {}
 
@@ -72,22 +71,26 @@ class Chunk {
   };
 
   Iterator begin()  { return Iterator(&voxels_[0]); }
-  Iterator end()  { return Iterator(&voxels_[chunk_dimensions_.size_]); }
-
-  explicit Chunk(Chunk::Dimensions dimensions);
+  Iterator end()  { return Iterator(&voxels_[Dimensions::size_]); }
+  Chunk(uint32_t l, uint32_t w, uint32_t h);
   ~Chunk() = default;
-  std::vector<std::unique_ptr<Voxel>>& GetVoxels ();
-  [[nodiscard]] Voxel const& GetVoxel(const Position &pos) const;
-  Voxel operator[](Position index) const;
+  std::array<Voxel,10000>& GetVoxels ();
+  [[nodiscard]] Voxel* GetVoxel(const Position &pos);
+  Voxel* operator[](Position index);
+
+  /* not implemented*/
   void ExportToObj(const std::string& filename);
  private:
   void GenerateMesh() const;
   [[nodiscard]] double ConvertIndex(const Position& pos) const;
-  void AddVoxel(Position const& pos);
+  void AddVoxel(Position pos);
+  double voxel_scale_ {0.25};
   Dimensions chunk_dimensions_;
-  std::vector<std::unique_ptr<Voxel>> voxels_{};
+  std::array<Voxel, 10000> voxels_;
 };
 
 #endif //VOXEL_CHUNK_H
 
 #pragma clang diagnostic pop
+
+#include "Chunk.tpp"

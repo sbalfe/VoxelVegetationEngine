@@ -24,32 +24,30 @@
 
 /* self imports */
 
-#include "../Engine/Renderer.h"
-#include "src/Engine/Chunk/Chunk.h"
 #include "src/Engine/Chunk/Position.h"
 #include "src/Engine/Voxel/Voxel.h"
 
-class Lindenmayer {
 
+class Lindenmayer {
  public:
 
-  enum class Axis {kX,kY,kZ};
+
+
+  enum class Axis { kX, kY, kZ };
 
   struct BranchDimension {
-    auto Get(){return std::make_tuple(length_, width_);}
+    auto Get() { return std::make_tuple(length_, width_); }
     uint32_t length_;
     uint32_t width_;
   };
 
   struct TurtleState {
-    glm::dvec3 direction_;
+    Position direction_;
     Position chunk_voxel_position_;
     BranchDimension branch_dimension_;
   };
 
-  explicit Lindenmayer(std::string axiom,
-                       std::unique_ptr<Renderer>& renderer,
-                       std::vector<uint32_t> indices,
+  Lindenmayer(std::string axiom, Chunk::Dimensions plant_chunk_dimensions,
                        Position initial_position);
 
   void SetFunctions();
@@ -79,14 +77,14 @@ class Lindenmayer {
 
   void Rotate(Axis axis, float sign);
   void Place(uint32_t t, Position initial_position);
-  void ProcessString(int length);
-  void TestFill();
-  void ShowTurtleVoxel();
+  void ProcessString(int length, Renderer& renderer);
+  Chunk& GetPlantChunk();
+  //void TestFill();
+ // void ShowTurtleVoxel();
 
  private:
 
   /* graphics */
-  std::unique_ptr<Renderer>& renderer_;
   std::vector<uint32_t> indices_;
   Chunk plant_chunk_;
 
@@ -102,18 +100,19 @@ class Lindenmayer {
   /* L-system*/
   std::map<char, std::string> rules_;
   std::array<std::function<void()>, 256> symbol_functions_;
-
+  std::array<char, 3> ignore_symbols_;
   std::string axiom_;
   std::string result_;
-
   std::stack<TurtleState> turtle_states;
-
 
   /* temp removed variables */
   //std::map<char, Direction> direction_key_map_;
   //int current_colour_ {0};
   //std::uint32_t default_dimension_index_ {0};
-
 };
 
 #endif  // VOXEL_LINDENMAYER_H
+
+#include "Lindenmayer.tpp"
+
+
