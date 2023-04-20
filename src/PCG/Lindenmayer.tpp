@@ -4,13 +4,13 @@
 
 
 Lindenmayer::Lindenmayer(std::string axiom,
-                               Chunk::Dimensions plant_chunk_dimensions,
+                               Chunk* plant_chunk_dimensions,
                                Position initial_position)
     : turtle_state_ {{0,1,0}, initial_position, {2,2} },
       branch_length_ {10},
       symbol_functions_{},
       dimensions_map_{{0, BranchDimension {7,7}}, {1, BranchDimension{4,4}}, {2, BranchDimension{3,3}}} ,axiom_ {std::move(axiom)},
-      plant_chunk_ {},
+      plant_chunk_ {plant_chunk_dimensions},
       ignore_symbols_ {'I', 'p', 'S'}
 {
   SetFunctions();
@@ -24,7 +24,10 @@ void Lindenmayer::SetFunctions(){
   symbol_functions_[']'] = [&](){turtle_state_ = turtle_states.top();turtle_states.pop();};
   symbol_functions_['['] = [&](){ turtle_states.push(turtle_state_); };
   /* rotations */
-  symbol_functions_['^'] = [&](){ Rotate(Axis::kX,-1); };
+  symbol_functions_['^'] = [&](){
+    std::cout << "test" << std::endl;
+    Rotate(Axis::kX,-1);
+  };
   symbol_functions_['\\'] = [&](){ Rotate(Axis::kY, 1); };
   symbol_functions_['/'] = [&](){ Rotate(Axis::kY,-1); };
   symbol_functions_['&'] = [&](){ Rotate(Axis::kX,1); };
@@ -36,9 +39,13 @@ void Lindenmayer::SetFunctions(){
 void Lindenmayer::ProcessString(int length, Renderer& renderer) {
 
     branch_length_ = length;
+    turtle_state_.chunk_voxel_position_ = Position {0,0,0};
 
   /* set initial turtle state*/
-  turtle_state_.chunk_voxel_position_ = Position{0,0,0};
+//  turtle_state_.chunk_voxel_position_ = Position{plant_chunk_->chunk_dimensions_.l_ / 2.0,
+//                                                   0,
+//                                                   plant_chunk_->chunk_dimensions_.w_ / 2.0};
+
   turtle_state_.direction_ = Position{0.0,1.0,0.0};
 
   renderer.ResetVoxels();
@@ -59,25 +66,31 @@ void Lindenmayer::ProcessString(int length, Renderer& renderer) {
 
       if (c == '>'){
 
-        //plant_chunk_.GetVoxel(turtle_state_.chunk_voxel_position_)->SetActive(true);
 
         Position initial_position = turtle_state_.chunk_voxel_position_;
-        Position copy_position = turtle_state_.chunk_voxel_position_;
-        Position initial_floor = initial_position.Floor(1);
-        Position temp_floor = initial_position.Floor(1);
+        Position current_position = turtle_state_.chunk_voxel_position_;
 
-        std::cout << "before update: " << turtle_state_.chunk_voxel_position_ << std::endl;
+        for (int i = 0; i < 3; i++){
+          plant_chunk_->AddVoxel(turtle_state_.chunk_voxel_position_);
+          //plant_chunk_->GetVoxel(turtle_state_.chunk_voxel_position_)->SetActive(true);
 
-        for (;;){
-          if (temp_floor != initial_floor){ break;}
-          copy_position.Update(0.1, turtle_state_.direction_, initial_position);
-          initial_position = copy_position;
-          temp_floor = copy_position.Floor(1);
+          Position current_voxel = turtle_state_.chunk_voxel_position_.Floor(1);
+          Position check_voxel_boundary = current_voxel;
+
+          for (;;) {
+
+
+            if (check_voxel_boundary != current_voxel) {
+              break;
+            }
+            current_position.Update(0.1, turtle_state_.direction_, initial_position);
+            initial_position = current_position;
+            check_voxel_boundary = current_position;
+            check_voxel_boundary.Floor(1);
+          }
+
+          turtle_state_.chunk_voxel_position_ = check_voxel_boundary;
         }
-
-        turtle_state_.chunk_voxel_position_ = copy_position;
-        turtle_state_.chunk_voxel_position_.Floor(1);
-        std::cout << "after update: " << turtle_state_.chunk_voxel_position_ << std::endl;
       }
       else {
         // std::cout << fmt::format("character: {}\n", c);
@@ -91,8 +104,7 @@ void Lindenmayer::ProcessString(int length, Renderer& renderer) {
   //turtle_states.empty();
 }
 
-
-Chunk& Lindenmayer::GetPlantChunk() { return plant_chunk_; }
+Chunk* Lindenmayer::GetPlantChunk() { return plant_chunk_; }
 
 /* Figure out the voxels to draw*/
 void Lindenmayer::Place(uint32_t t, Position initial_position) {
@@ -100,9 +112,10 @@ void Lindenmayer::Place(uint32_t t, Position initial_position) {
   auto [branch_width, branch_length] = turtle_state_.branch_dimension_.Get();
 }
 
-
 void Lindenmayer::Rotate(Lindenmayer::Axis axis, float sign) {
+
   glm::dmat4 rotation_matrix;
+
   switch(axis){
     case Axis::kX: {
       rotation_matrix = glm::rotate(glm::mat4(1.0), sign * branching_angle_, glm::vec3{1,0,0});
@@ -118,6 +131,7 @@ void Lindenmayer::Rotate(Lindenmayer::Axis axis, float sign) {
     }
   }
   turtle_state_.direction_ = glm::dvec3(rotation_matrix * glm::vec4(turtle_state_.direction_.glm_vector_ ,1.0f));
+  turtle_state_.direction_.UpdateGlm();
 }
 
 

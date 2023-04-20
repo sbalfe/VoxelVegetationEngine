@@ -88,13 +88,11 @@ void Renderer::FillBuffers(Voxel& voxel){
   glEnableVertexAttribArray(1);
 }
 
-
 void Renderer::AddVoxel(Voxel voxel){
   voxel.world_position_ = voxel.chunk_position_ / 4;
   FillBuffers(voxel);
   voxels_.emplace_back(voxel);
 }
-
 
 void Renderer::ResetVoxels(){
   for (auto& voxel : voxels_) {
@@ -111,26 +109,22 @@ void Renderer::HandleKeyboard(){
   camera_->ProcessKeyboard(state, delta_time_);
 }
 
-
 void Renderer::ProcessMouse(double x_pos, double y_pos){
   camera_->ProcessMouse(x_pos, y_pos);
 }
-
 
 GUI& Renderer::GetGui(){
   return gui_;
 }
 
-void Renderer::ProcessChunk(Chunk& chunk){
+void Renderer::ProcessChunk(Chunk* chunk){
   SetRandomColours(chunk);
-//  for (Voxel voxel: chunk){
-//    if (voxel) {
-//      std::cout << "adding" << std::endl;
-//      AddVoxel(voxel);
-//    }
-//  }
+  for (const Voxel& voxel: *chunk){
+    if (voxel) {
+      AddVoxel(voxel);
+    }
+  }
 }
-
 
 void Renderer::Render() {
   HandleKeyboard();
@@ -176,7 +170,7 @@ void Renderer::ShowGUI(){gui_.ShowGUI();}
 void Renderer::Export(const std::string& filename){}
 
 
-void Renderer::SetRandomColours(Chunk& chunk){
+void Renderer::SetRandomColours(Chunk* chunk){
 
   auto random_colour = []() -> Voxel::Colour {
     std::mt19937_64 eng(std::random_device{}());
@@ -184,7 +178,7 @@ void Renderer::SetRandomColours(Chunk& chunk){
     return {distr(eng) ,distr(eng), distr(eng)};
   };
 
-//  for (auto& voxel: chunk){
-//    voxel.colour_ = random_colour();
-//  }
+  for (auto& voxel: *chunk){
+    voxel.colour_ = random_colour();
+  }
 }

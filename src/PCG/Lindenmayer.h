@@ -47,7 +47,7 @@ class Lindenmayer {
     BranchDimension branch_dimension_;
   };
 
-  Lindenmayer(std::string axiom, Chunk::Dimensions plant_chunk_dimensions,
+  Lindenmayer(std::string axiom, Chunk* plant_chunk,
                        Position initial_position);
 
   void SetFunctions();
@@ -78,7 +78,7 @@ class Lindenmayer {
   void Rotate(Axis axis, float sign);
   void Place(uint32_t t, Position initial_position);
   void ProcessString(int length, Renderer& renderer);
-  Chunk& GetPlantChunk();
+  Chunk* GetPlantChunk();
   //void TestFill();
  // void ShowTurtleVoxel();
 
@@ -86,7 +86,7 @@ class Lindenmayer {
 
   /* graphics */
   std::vector<uint32_t> indices_;
-  Chunk plant_chunk_;
+  Chunk* plant_chunk_;
 
   /* state */
   TurtleState turtle_state_;

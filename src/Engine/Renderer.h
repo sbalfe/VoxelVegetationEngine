@@ -41,12 +41,12 @@ class Renderer {
   void ResetVoxels();
   void Render();
   void ShowGUI();
-  void ProcessChunk(Chunk& chunk);
+  void ProcessChunk(Chunk* chunk);
   void HandleKeyboard();
   void ProcessMouse(double x_pos, double y_pos);
   GUI& GetGui();
   void Export(const std::string& filename);
-  static void SetRandomColours(Chunk& chunk);
+  static void SetRandomColours(Chunk* chunk);
 
  private:
   /* Camera */

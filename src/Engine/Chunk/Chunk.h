@@ -38,11 +38,12 @@ class Chunk {
 
   struct Dimensions {
     Dimensions(uint32_t l, uint32_t w, uint32_t h): l_ {l}, w_ {w}, h_{h} {}
-    static const uint32_t size_ = 10000;
-    uint32_t l_ = 100;
-    uint32_t w_ = 100;
-    uint32_t h_ = 100;
+    static const uint32_t size_ = 1000000   ;
+    uint32_t l_;
+    uint32_t w_;
+    uint32_t h_;
   };
+
   struct Iterator {
     using iterator_category = std::forward_iterator_tag;
     using difference_type   = std::ptrdiff_t;
@@ -74,19 +75,21 @@ class Chunk {
   Iterator end()  { return Iterator(&voxels_[Dimensions::size_]); }
   Chunk(uint32_t l, uint32_t w, uint32_t h);
   ~Chunk() = default;
-  std::array<Voxel,10000>& GetVoxels ();
+  std::array<Voxel,1000000>& GetVoxels ();
   [[nodiscard]] Voxel* GetVoxel(const Position &pos);
   Voxel* operator[](Position index);
+  void AddVoxel(Position pos);
 
   /* not implemented*/
   void ExportToObj(const std::string& filename);
+
+  std::vector<Position> positions_;
+  Dimensions chunk_dimensions_;
  private:
   void GenerateMesh() const;
   [[nodiscard]] double ConvertIndex(const Position& pos) const;
-  void AddVoxel(Position pos);
   double voxel_scale_ {0.25};
-  Dimensions chunk_dimensions_;
-  std::array<Voxel, 10000> voxels_;
+  std::array<Voxel, 1000000  > voxels_;
 };
 
 #endif //VOXEL_CHUNK_H
