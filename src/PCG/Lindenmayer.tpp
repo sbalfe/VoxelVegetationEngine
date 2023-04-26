@@ -24,16 +24,14 @@ void Lindenmayer::SetFunctions(){
   symbol_functions_[']'] = [&](){turtle_state_ = turtle_states.top();turtle_states.pop();};
   symbol_functions_['['] = [&](){ turtle_states.push(turtle_state_); };
   /* rotations */
-  symbol_functions_['^'] = [&](){
-    std::cout << "test" << std::endl;
-    Rotate(Axis::kX,-1);
-  };
+  symbol_functions_['^'] = [&](){Rotate(Axis::kX,-1);};
   symbol_functions_['\\'] = [&](){ Rotate(Axis::kY, 1); };
   symbol_functions_['/'] = [&](){ Rotate(Axis::kY,-1); };
   symbol_functions_['&'] = [&](){ Rotate(Axis::kX,1); };
   symbol_functions_['+'] = [&](){ Rotate(Axis::kZ, 1); };
   symbol_functions_['-'] = [&](){ Rotate(Axis::kZ, -1); };
 }
+
 
 
 void Lindenmayer::ProcessString(int length, Renderer& renderer) {
@@ -50,13 +48,35 @@ void Lindenmayer::ProcessString(int length, Renderer& renderer) {
 
   renderer.ResetVoxels();
 
+  auto PlaceCube = [&](Position& cube_center, uint32_t cube_size){
+    double half_size = cube_size / 2.0;
+    double remainder = std::fmod(half_size, 1.0);
+    if (remainder == 0.5){floor(half_size);}
+    double startX = cube_center.x_ - half_size;
+    double endX = startX + cube_size;
+    double startY = cube_center.y_ - half_size;
+    double endY = startY + cube_size;
+    double startZ = cube_center.z_ - half_size;
+    double endZ = startZ + cube_size;
+    for(int i = static_cast<int>(startX); i <= endX; i++) {
+      for(int j = static_cast<int>(startY); j <= endY; j++) {
+        for(int k = static_cast<int>(startZ); k <= endZ; k++) {
+          Position cube_voxel(i, j, k);
+          plant_chunk_->AddVoxel(cube_voxel);
+        }
+      }
+    }
+  };
+
   std::for_each(std::begin(result_), std::end(result_), [&](char c){
 
     /* parse digit characters differently */
     if (isdigit(c)) {
 
-      /* indexes determine the size of the branches generated */
+      /* convert char to integer */
       uint32_t dimension_index = c - '0';
+
+      size_ = dimension_index;
 
       /* if a number is read that is not in the map set to the smallest possible value */
       if (dimension_index > dimension_limit_) dimension_index = dimension_limit_;
@@ -66,51 +86,58 @@ void Lindenmayer::ProcessString(int length, Renderer& renderer) {
 
       if (c == '>'){
 
-
         Position initial_position = turtle_state_.chunk_voxel_position_;
-        Position current_position = turtle_state_.chunk_voxel_position_;
+        Position current_position = initial_position;
 
-        for (int i = 0; i < 3; i++){
+        for (int i = 0; i < 2 ; i++){
+
+          std::cout << turtle_state_.chunk_voxel_position_ << '\n';
           plant_chunk_->AddVoxel(turtle_state_.chunk_voxel_position_);
-          //plant_chunk_->GetVoxel(turtle_state_.chunk_voxel_position_)->SetActive(true);
+          //PlaceCube(turtle_state_.chunk_voxel_position_, 2);
 
           Position current_voxel = turtle_state_.chunk_voxel_position_.Floor(1);
           Position check_voxel_boundary = current_voxel;
 
-          for (;;) {
-
-
-            if (check_voxel_boundary != current_voxel) {
-              break;
+          auto CheckNull = [&](Position pos){
+            auto fetch = plant_chunk_->GetVoxel(pos);
+            if (fetch == nullptr){
+              return false;
             }
-            current_position.Update(0.1, turtle_state_.direction_, initial_position);
-            initial_position = current_position;
-            check_voxel_boundary = current_position;
-            check_voxel_boundary.Floor(1);
-          }
+            return true;
+          };
 
-          turtle_state_.chunk_voxel_position_ = check_voxel_boundary;
+          while (CheckNull(turtle_state_.chunk_voxel_position_)) {
+            for (;;) {
+              /* move in the specified direction slightly */
+              current_position.Update(0.1, turtle_state_.direction_,initial_position);
+
+              /* update our position to increment from for the next increment */
+              initial_position = current_position;
+
+              /* check if the position we just moved to has passed the boundary by seeing if the floored valued has changed*/
+              check_voxel_boundary = current_position;
+              check_voxel_boundary.Floor(1);
+              if (check_voxel_boundary != current_voxel) {
+                break;
+              }
+            }
+            turtle_state_.chunk_voxel_position_ = check_voxel_boundary;
+          }
         }
       }
       else {
-        // std::cout << fmt::format("character: {}\n", c);
-        /* run the logic associated with that symbol*/
         if (symbol_functions_[c]) symbol_functions_[c]();
       }
     }
   });
 
-  /* wipe the states for the next render*/
-  //turtle_states.empty();
+  turtle_states.empty();
 }
 
-Chunk* Lindenmayer::GetPlantChunk() { return plant_chunk_; }
-
-/* Figure out the voxels to draw*/
-void Lindenmayer::Place(uint32_t t, Position initial_position) {
-  auto old_position = turtle_state_.chunk_voxel_position_;
-  auto [branch_width, branch_length] = turtle_state_.branch_dimension_.Get();
+Chunk* Lindenmayer::GetPlantChunk() {
+  return plant_chunk_;
 }
+
 
 void Lindenmayer::Rotate(Lindenmayer::Axis axis, float sign) {
 

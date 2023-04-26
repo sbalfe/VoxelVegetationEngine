@@ -18,7 +18,7 @@ struct Position {
 
   }
 
-  auto operator()() const{ return std::make_tuple(x_,y_,z_); }
+  auto operator()() const{ return std::make_tuple(static_cast<int>(x_),static_cast<int>(y_),static_cast<int>(z_)); }
 
   Position operator/(double value) const { return {x_ / value,  y_ / value, z_ / value} ;}
 
@@ -41,11 +41,11 @@ struct Position {
   }
 
   void Update(double t, Position turtle_direction, Position initial_position){
-    std::cout << "before " << *this << '\n';
+    //std::cout << "before " << *this << '\n';
     x_ = ((turtle_direction.x_ * t)) + initial_position.x_;
     y_ = ((turtle_direction.y_ * t) ) + initial_position.y_;
     z_ = ((turtle_direction.z_ * t)) + initial_position.z_;
-    std::cout << "after " << *this << '\n';
+    //std::cout << "after " << *this << '\n';
     glm_vector_.x = x_;
     glm_vector_.y = y_;
     glm_vector_.z = z_;

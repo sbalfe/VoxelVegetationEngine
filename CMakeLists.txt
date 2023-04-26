@@ -10,20 +10,18 @@ add_library(imgui # Main Imgui files
         ./src/ImGui/imgui_tables.cpp ./src/ImGui/imgui_widgets.cpp
         # SDL2+OpenGL-specific files
         ./src/ImGui/imgui_impl_sdl.cpp
-        ./src/ImGui/imgui_impl_opengl3.cpp src/Engine/Voxel/Voxel.cpp src/Engine/GUI.cpp src/Engine/GUI.h)
+        ./src/ImGui/imgui_impl_opengl3.cpp src/Engine/Voxel/Voxel.cpp src/Engine/GUI/GUI.cpp src/Engine/GUI/GUI.h)
 
 add_executable(Voxel
-        src/ResourceManagers/Shader.cpp
+        src/Engine/Shaders/Shader.cpp
         src/Glad/glad.c
         src/stb_image.h
-        src/Engine/Camera/Camera.h
-        src/Engine/old/Voxel_old.h
         src/main.cpp
-        src/PCG/Lindenmayer.cpp
+        src/Engine/Position.h
+        src/Engine/Camera/Camera.cpp
         src/Engine/Renderer.cpp
         src/Engine/Chunk/Chunk.cpp
-        src/Engine/Voxel/Voxel.h
-        src/Engine/Chunk/Position.h)
+        src/Engine/Voxel/Voxel.cpp)
 
 #add_executable(Voxel_old src/test.cpp)
 
@@ -34,7 +32,7 @@ find_package(glm REQUIRED)
 find_package(fmt REQUIRED)
 find_package(Boost 1.40)
 
-include_directories(${OPENGL_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS} ${glm_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${fmt_INCLUDE_DIRS} ./ ./include)
+include_directories(${OPENGL_INCLUDE_DIRS} ${SDL2_INCLUDE_DIRS} ${glm_INCLUDE_DIRS} ${Boost_INCLUDE_DIR} ${fmt_INCLUDE_DIRS} ./ ./include ../ )
 include_directories(./src/ImGui)
 target_link_libraries(Voxel ${OPENGL_LIBRARIES} ${SDL2_LIBRARIES} ${GLEW_LIBRARIES} ${Boost_LIBRARIES} ${glm_LIBRARIES} fmt::fmt imgui)
 

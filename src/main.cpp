@@ -25,46 +25,45 @@ void HandleSDLEvent(Renderer& renderer, SDL_Event& event, bool& should_run, bool
       if (!escaped) {
         int x, y;
         SDL_GetMouseState(&x, &y);
-        renderer.ProcessMouse(static_cast<float>(x),
-                               static_cast<float>(y));
+        renderer.ProcessMouse(static_cast<float>(x),static_cast<float>(y));
       }
     }
   }
 }
 
+int BasicTest(Lindenmayer* l_system){
+  l_system->AddRule('p', ">>>>>");
+}
+
+int PlantOne(Lindenmayer* l_system){
+  l_system->AddRule('p', "I+[p+#]--//[--#]I[++#]-[p#]++p#");
+  l_system->AddRule('I', ">S[//&&#][//^^#]>S");
+  l_system->AddRule('S', "S>S");
+}
+
 int main() {
 
-  auto* test_chunk = new Chunk{100,100,100};
+  auto* test_chunk = new Chunk{8192,8192,8192};
   auto renderer = std::make_unique<Renderer>(1000, 600);
   auto* l_system = new Lindenmayer("p", test_chunk, {0, 0, 0});
 
- // l_system->AddRule('p', ">>>>");
-  l_system->AddRule('p', "9I+[p+#]--//[--#]I[++#]-[p#]++p#");
-  l_system->AddRule('I', ">S[//&&#][//^^#]>S");
-  l_system->AddRule('S', "9S>S");
+  PlantOne(l_system);
 
-  auto output = l_system->ExecuteProductions(5);
+  auto output = l_system->ExecuteProductions(8);
   std::cout << fmt::format("output: {}\n", output);
+
   l_system->ProcessString(0, *renderer);
   renderer->ProcessChunk(l_system->GetPlantChunk());
+  bool escaped {};
 
-  /*
-   * 0-9 are the values used to alter the width / length parameters of the generated branch > advances the turtle forward in the current orientation defined by a branch length parameter [ to save the position, orientation and width / length parameters of the generated branch. ] to load the last saved position, orientation and width / length parameters of the generated branch. # places a leaf each rotation has +/- degree parameter respectively.
-   * + - = rotate on z axis
-   * & ^ - rotate on x axis
-   * \\ / - rotate on y axis
-   * */
-
-    bool escaped {};
-    bool should_run;
-
-    for (should_run = true; should_run;) {
-      SDL_Event event;
-      while (SDL_PollEvent(&event)) {
-        HandleSDLEvent(*renderer, event, should_run, escaped);
-      }
-      renderer->Render();
+  for (bool should_run = true; should_run;) {
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+      HandleSDLEvent(*renderer, event, should_run, escaped);
     }
-    printf("Exiting...\n");
+    renderer->Render();
+  }
+
+  printf("Exiting...\n");
   return 0;
 }

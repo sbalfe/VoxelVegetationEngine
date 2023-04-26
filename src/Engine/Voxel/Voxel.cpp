@@ -19,11 +19,11 @@ Voxel::Voxel(Position chunk_position)
       colour_data_{},
       colour_buffer_{},
       active_{false},
-      chunk_position_{0,0,0},
+      chunk_position_{chunk_position},
       world_position_{0,0,0},
       colour_{1,1,0}
 {}
 
-void Voxel::SetActive(bool active){active_ = active;}
+void Voxel::SetActive(bool active){ active_ = active; }
 
 [[nodiscard]] Voxel::operator bool() const { return active_; }

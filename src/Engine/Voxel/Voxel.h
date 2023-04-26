@@ -5,11 +5,11 @@
 #ifndef VOXEL_VOXEL_H
 #define VOXEL_VOXEL_H
 
-#include "../Chunk/Position.h"
+#include "src/Engine/Position.h"
 #include <GL/glew.h>
 #include <array>
-#include <vector>
 #include <iostream>
+#include <vector>
 
 class Voxel {
  public:

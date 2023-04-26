@@ -1,53 +1,64 @@
-////
-//// Created by shriller44 on 10/9/22.
-////
-//
-//
-//template<int size>
-//constexpr Chunk<size>::Chunk(uint32_t w, uint32_t l, uint32_t h): chunk_dimensions_(l,w,h) {
-//  voxels_.resize(size);
-//  for (uint32_t x = 0; x <  chunk_dimensions_.l_; x++) {
-//    for (uint32_t y = 0; y < chunk_dimensions_.w_ ; y++) {
-//      for (uint32_t z = 0; z < chunk_dimensions_.h_; z++) {
-//        AddVoxel({static_cast<double>(x), static_cast<double>(y), static_cast<double>(z)});
-//      }
-//    }
-//  }
-//  this->GenerateMesh();
-//}
-//
-//template<int size>
-//double Chunk<size>::ConvertIndex(const Position &pos)  const {
-//  auto [x,y,z] = pos();
-//  return x + (y * chunk_dimensions_.l_) + (z * chunk_dimensions_.l_ * chunk_dimensions_.w_);
-//}
-//
-//
-//template<int size>
-//Voxel& Chunk<size>::GetVoxel(const Position &pos) const {
-//  auto chunk_index = static_cast<uint32_t>(ConvertIndex(pos));
-//  //std::cout << fmt::format("chunk index: {}\n", chunk_index);
-//  return voxels_[chunk_index];
-//}
-//
-//template<int size>
-//void Chunk<size>::AddVoxel(const Position &pos) {
-//  voxels_[static_cast<uint32_t>(ConvertIndex(pos))] = std::make_unique<Voxel>(pos);
-//}
-//
-//template<int size>
-//void Chunk<size>::GenerateMesh() const {
-//  for (uint32_t x = 0; x <  chunk_dimensions_.l_; x++) {
-//    for (uint32_t y = 0; y < chunk_dimensions_.w_ ; y++) {
-//      for (uint32_t z = 0; z < chunk_dimensions_.h_; z++) {
-//       // if (GetVoxel({x,y,z})){}
-//      }
-//    }
-//  }
-//}
-//
-//template<int size>
-//Voxel Chunk<size>::operator[](Position index) const {return GetVoxel(index);}
-//
-//template<int size>
-//std::vector<Voxel>& Chunk<size>::GetVoxels () {return voxels_;}
+#include "Chunk.h"
+
+Chunk::Chunk(uint32_t l, uint32_t w, uint32_t h)
+    :chunk_dimensions_ {l,w,h},
+      voxel_octree_(static_cast<int>(l)){
+  voxel_octree_.setEmptyValue(nullptr);
+}
+
+double Chunk::ConvertIndex(const Position& pos)  const {
+  auto [x,y,z] = pos();
+  return x + (y * chunk_dimensions_.l_) + (z * chunk_dimensions_.l_ * chunk_dimensions_.w_);
+}
+
+bool Chunk::BoundaryCheck(const Position& pos) const{
+  return !(pos.x_ < 0 ||
+          pos.x_ >= chunk_dimensions_.h_ ||
+          pos.y_ < 0 ||
+          pos.y_ >= chunk_dimensions_.l_ ||
+          pos.z_ < 0 || pos.z_ >= chunk_dimensions_.w_);
+}
+
+bool Chunk::CheckActive(Position &pos){
+
+  if (!BoundaryCheck(pos)) return false;
+  auto [x,y,z] = pos();
+  return voxel_octree_(x,y,z);
+}
+
+Voxel* Chunk::GetVoxel(const Position &pos) {
+
+  if (!BoundaryCheck(pos)) return nullptr;
+  auto [x,y,z] = pos();
+  return voxel_octree_(x,y,z);
+}
+
+void Chunk::AddVoxel(Position pos){
+
+  if (!BoundaryCheck(pos)) return;
+
+  auto [x,y,z] = pos();
+
+  position_tracker_.emplace_back(new Position{pos});
+  voxel_octree_(x,y,z) = new Voxel(pos);
+  voxel_octree_(x,y,z)->SetActive(true);
+}
+
+void Chunk::GenerateMesh() const {
+  for (uint32_t x = 0; x <  chunk_dimensions_.l_; x++) {
+    for (uint32_t y = 0; y < chunk_dimensions_.w_ ; y++) {
+      for (uint32_t z = 0; z < chunk_dimensions_.h_; z++) {
+        // if (GetVoxel({x,y,z})){}
+      }
+    }
+  }
+}
+
+Voxel* Chunk::operator[](Position index)  {
+  auto [x,y,z] = index();
+  return voxel_octree_(x,y,z);
+}
+
+std::vector<Voxel*>& Chunk::GetVoxels () {
+ // return voxels_;
+}

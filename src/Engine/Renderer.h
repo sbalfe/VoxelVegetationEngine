@@ -26,18 +26,17 @@
 #include "src/Engine/Camera/Camera.h"
 #include "src/Engine/Chunk/Chunk.h"
 #include "src/Engine/Data/buffer_data.h"
+#include "src/Engine/GUI/GUI.h"
+#include "src/Engine/Shaders/Shader.h"
 #include "src/Engine/Voxel/Voxel.h"
-#include "src/Engine/GUI.h"
-#include "../ResourceManagers/Shader.h"
-
 
 class Renderer {
 
  public:
 
   Renderer(uint32_t screen_width, uint32_t screen_height);
-  static void FillBuffers(Voxel& voxel);
-  void AddVoxel(Voxel voxel);
+  static void FillBuffers(Voxel* voxel);
+  void AddVoxel(Voxel* voxel);
   void ResetVoxels();
   void Render();
   void ShowGUI();
@@ -49,6 +48,7 @@ class Renderer {
   static void SetRandomColours(Chunk* chunk);
 
  private:
+
   /* Camera */
   Camera *camera_;
 
@@ -58,7 +58,7 @@ class Renderer {
   uint32_t screen_height_;
 
   /* Render */
-  std::vector<Voxel> voxels_;
+  std::vector<Voxel*> voxels_;
   float delta_time_;
   float last_frame_;
   uint32_t texture1_;
@@ -70,4 +70,3 @@ class Renderer {
 
 #endif  // VOXEL_RENDERER_H
 
-#include "Renderer.tpp"

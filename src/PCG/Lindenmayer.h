@@ -24,14 +24,12 @@
 
 /* self imports */
 
-#include "src/Engine/Chunk/Position.h"
+#include "src/Engine/Position.h"
 #include "src/Engine/Voxel/Voxel.h"
 
 
 class Lindenmayer {
  public:
-
-
 
   enum class Axis { kX, kY, kZ };
 
@@ -76,7 +74,6 @@ class Lindenmayer {
   std::string ExecuteProductions(uint32_t production_count);
 
   void Rotate(Axis axis, float sign);
-  void Place(uint32_t t, Position initial_position);
   void ProcessString(int length, Renderer& renderer);
   Chunk* GetPlantChunk();
   //void TestFill();
@@ -104,6 +101,7 @@ class Lindenmayer {
   std::string axiom_;
   std::string result_;
   std::stack<TurtleState> turtle_states;
+  uint32_t size_;
 
   /* temp removed variables */
   //std::map<char, Direction> direction_key_map_;

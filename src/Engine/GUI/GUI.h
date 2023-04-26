@@ -5,12 +5,11 @@
 #ifndef VOXEL_GUI_H
 #define VOXEL_GUI_H
 
+#include "src/ImGui/imgui_impl_opengl3.h"
+#include "src/ImGui/imgui_impl_sdl.h"
 #include <SDL2/SDL.h>
 #include <iostream>
-#include "../ImGui/imgui_impl_sdl.h"
-#include "../ImGui/imgui_impl_opengl3.h"
 #include <memory>
-
 
 class Interface {
  public:
@@ -28,9 +27,9 @@ class Interface {
   }
 
   struct RenderState {
-    int branching_angle_;
-    int production_count_;
     int branch_length_;
+    int production_count_;
+    int colour_;
   };
 
   enum Flags {
