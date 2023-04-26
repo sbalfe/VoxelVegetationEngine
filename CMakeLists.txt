@@ -23,7 +23,6 @@ add_executable(Voxel
         src/Engine/Chunk/Chunk.cpp
         src/Engine/Voxel/Voxel.cpp)
 
-#add_executable(Voxel_old src/test.cpp)
 
 find_package(OpenGL)
 find_package(SDL2 REQUIRED)

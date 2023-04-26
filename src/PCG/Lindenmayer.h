@@ -111,6 +111,4 @@ class Lindenmayer {
 
 #endif  // VOXEL_LINDENMAYER_H
 
-#include "Lindenmayer.tpp"
-
-
+#include "Lindenmayer.cpp"
