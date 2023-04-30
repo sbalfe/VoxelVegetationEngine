@@ -8,7 +8,7 @@
 #include "../ImGui/imgui.h"
 #include "../ImGui/imgui_impl_opengl3.h"
 #include "../ImGui/imgui_impl_sdl.h"
-#include "../stb_image.h"
+#include "external/stb_image.h"
 #include <GL/glew.h>
 #include <SDL2/SDL.h>
 #include <fmt/format.h>

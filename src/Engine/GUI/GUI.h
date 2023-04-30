@@ -5,9 +5,9 @@
 #ifndef VOXEL_GUI_H
 #define VOXEL_GUI_H
 
-#include "src/ImGui/imgui_impl_opengl3.h"
-#include "src/ImGui/imgui_impl_sdl.h"
-#include "imgui_internal.h"
+#include "../../../external/ImGui/imgui_impl_opengl3.h"
+#include "../../../external/ImGui/imgui_impl_sdl.h"
+#include "../../../external/ImGui/imgui_internal.h"
 #include <SDL2/SDL.h>
 #include <iostream>
 #include <memory>
