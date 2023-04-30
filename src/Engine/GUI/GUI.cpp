@@ -40,7 +40,7 @@ GUI::GUI(int screen_width, int screen_height){
     SDL_Quit();
   }
 
-  imgui_interface_ =  std::make_unique<Interface>(window_);
+  imgui_interface_ = std::make_unique<Interface>(window_);
 
   SDL_GL_SetSwapInterval(1); // Use VSYNC
 }

@@ -19,8 +19,9 @@
 #include <array>
 #include <filesystem>
 #include <iostream>
-#include <vector>
 #include <random>
+#include <unordered_map>
+#include <vector>
 
 /* self imports */
 #include "src/Engine/Camera/Camera.h"
@@ -34,18 +35,19 @@ class Renderer {
 
  public:
 
-  Renderer(uint32_t screen_width, uint32_t screen_height);
+  Renderer(uint32_t screen_width, uint32_t screen_height, int chunk_size);
   static void FillBuffers(Voxel* voxel);
-  void AddVoxel(Voxel* voxel);
-  void ResetVoxels();
-  void Render();
+ // void AddVoxel(Voxel* voxel);
+  void ResetVoxels(uint32_t chunk_index);
+  void Render(uint32_t chunk_index);
   void ShowGUI();
-  void ProcessChunk(Chunk* chunk);
+  bool UpdateChunkData(std::vector<Voxel*>& chunk_data, uint32_t chunk_index);
+  void ProcessChunkData(uint32_t chunk_index);
   void HandleKeyboard();
   void ProcessMouse(double x_pos, double y_pos);
   GUI& GetGui();
   void Export(const std::string& filename);
-  static void SetRandomColours(Chunk* chunk);
+  static void SetRandomColours(std::vector<Voxel*>& chunk_data);
 
  private:
 
@@ -58,7 +60,8 @@ class Renderer {
   uint32_t screen_height_;
 
   /* Render */
-  std::vector<Voxel*> voxels_;
+  std::unordered_map<uint32_t,std::vector<Voxel*>> voxels_;
+  static constexpr int voxel_scale_ {20};
   float delta_time_;
   float last_frame_;
   uint32_t texture1_;
@@ -66,6 +69,7 @@ class Renderer {
   int width_;
   int height_;
   int channels_;
+
 };
 
 #endif  // VOXEL_RENDERER_H

@@ -5,7 +5,7 @@
 #include "Renderer.h"
 
 
-Renderer::Renderer(uint32_t screen_width, uint32_t screen_height)
+Renderer::Renderer(uint32_t screen_width, uint32_t screen_height, int chunk_size)
     :screen_width_{screen_width},
       screen_height_{screen_height},
       delta_time_ {0.0f},
@@ -22,7 +22,7 @@ Renderer::Renderer(uint32_t screen_width, uint32_t screen_height)
   }
 
   /****** Camera ******/
-  camera_ = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+  camera_ = new Camera(glm::vec3(static_cast<double>(chunk_size / 2) / 20, 3.0f, (static_cast<double>(chunk_size / 2) / 20) - 6));
   /*******************/
 
   /** Shaders **/
@@ -42,6 +42,7 @@ Renderer::Renderer(uint32_t screen_width, uint32_t screen_height)
   stbi_set_flip_vertically_on_load(true);
 
   unsigned char *data = stbi_load("../data/Textures/container.jpg", &width_, &height_, &channels_, 0);
+
   if (data)
   {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width_, height_, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -59,7 +60,6 @@ Renderer::Renderer(uint32_t screen_width, uint32_t screen_height)
   ImGui_ImplOpenGL3_Init("#version 330");
   /*******************/
 }
-
 
 void Renderer::FillBuffers(Voxel* voxel){
   glGenVertexArrays(1, &voxel->vao_);
@@ -89,21 +89,26 @@ void Renderer::FillBuffers(Voxel* voxel){
   glEnableVertexAttribArray(1);
 }
 
-void Renderer::AddVoxel(Voxel* voxel){
-  voxel->world_position_ = voxel->chunk_position_ / 20;
+//void Renderer::AddVoxel(Voxel* voxel){
+//  voxel->world_position_ = voxel->chunk_position_ / 20;
+//  FillBuffers(voxel);
+//  voxels_.emplace_back(voxel);
+//}
 
-  FillBuffers(voxel);
-  voxels_.emplace_back(voxel);
-}
+void Renderer::ResetVoxels(uint32_t chunk_index){
 
-void Renderer::ResetVoxels(){
-  for (auto& voxel : voxels_) {
-    glDeleteVertexArrays(1, &voxel->vao_);
-    glDeleteBuffers(1, &voxel->vbo_);
-    glDeleteBuffers(1, &voxel->ebo_);
-    glDeleteBuffers(1, &voxel->colour_buffer_);
+  std::cout << fmt::format("size before wipe: {}\n", voxels_[chunk_index].size());
+  for (auto v : voxels_[chunk_index]) {
+    glDeleteVertexArrays(1, &v->vao_);
+    glDeleteBuffers(1, &v->vbo_);
+    glDeleteBuffers(1, &v->ebo_);
+    glDeleteBuffers(1, &v->colour_buffer_);
   }
-  voxels_.clear();
+
+  auto fetch_vec = voxels_[chunk_index];
+  voxels_[chunk_index].clear();
+  std::cout << fmt::format("size after wipe: {}\n", voxels_[chunk_index].size());
+
 }
 
 void Renderer::HandleKeyboard(){
@@ -115,19 +120,41 @@ void Renderer::ProcessMouse(double x_pos, double y_pos){
   camera_->ProcessMouse(x_pos, y_pos);
 }
 
+
 GUI& Renderer::GetGui(){
   return gui_;
 }
 
-void Renderer::ProcessChunk(Chunk* chunk){
-  SetRandomColours(chunk);
-  for (const auto position : (*chunk).position_tracker_){
-    auto voxel = chunk->GetVoxel(*position);
-    AddVoxel(voxel);
-  }
+bool Renderer::UpdateChunkData(std::vector<Voxel*>& chunk_data, uint32_t chunk_index){
+  voxels_[chunk_index] = chunk_data;
+//
+//  if (voxels_.find(chunk_index) != voxels_.end()){
+//    std::cout << "data loaded\n";
+//    voxels_[chunk_index] = chunk_data;
+//    return true;
+//  }
+//  else {
+//    std::cout << "new association\n";
+//    voxels_[chunk_index] = chunk_data;
+//    return false ;
+//  }
 }
 
-void Renderer::Render() {
+void Renderer::ProcessChunkData(uint32_t chunk_index){
+  auto chunk_data = voxels_[chunk_index];
+  SetRandomColours(chunk_data);
+  for (auto* v : chunk_data){
+    v->world_position_ = v->chunk_position_ / 20;
+    FillBuffers(v);
+  }
+
+}
+
+void Renderer::Render(uint32_t chunk_index) {
+
+  auto render_data = voxels_[chunk_index];
+  //std::cout << fmt::format("render data size: {}\n", render_data.size());
+
   HandleKeyboard();
   ShowGUI();
   glEnable(GL_DEPTH_TEST);
@@ -147,7 +174,8 @@ void Renderer::Render() {
     shader_->setMat4("projection", projection);
     shader_->setMat4("view", view);
 
-    for (const auto& v : voxels_) {
+    for (const auto& v : render_data) {
+//      std::cout << fmt::format("rendering at| x: {}, y: {}, z: {}\n",v->world_position_.x_ ,v->world_position_.y_, v->world_position_.z_ );
       glBindVertexArray(v->vao_);
       glm::mat4 model = glm::mat4(1.0f);
       glm::vec3 scale = glm::vec3(0.05, 0.05, 0.05);
@@ -164,14 +192,11 @@ void Renderer::Render() {
   gui_.SwapWindow();
 }
 
-
-void Renderer::ShowGUI(){gui_.ShowGUI();}
-
+void Renderer::ShowGUI(){ gui_.ShowGUI(); }
 
 void Renderer::Export(const std::string& filename){}
 
-
-void Renderer::SetRandomColours(Chunk* chunk){
+void Renderer::SetRandomColours(std::vector<Voxel*>& chunk_data){
 
   auto random_colour = []() -> Voxel::Colour {
     std::mt19937_64 eng(std::random_device{}());
@@ -179,8 +204,10 @@ void Renderer::SetRandomColours(Chunk* chunk){
     return {distr(eng) ,distr(eng), distr(eng)};
   };
 
-  for (const auto& position: (*chunk).position_tracker_){
-    auto* voxel = chunk->GetVoxel(*position);
-    voxel->colour_ = random_colour();
+  for (const auto v: chunk_data ){
+     v->colour_ = random_colour();
+    //voxel->colour_ = Voxel::Colour{0,1,0};
   }
 }
+
+

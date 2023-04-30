@@ -5,7 +5,6 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "Engine/Renderer.h"
 #include "PCG/Lindenmayer.h"
-//#include "Engine/Chunk/Chunk.h"
 #include "fmt/format.h"
 
 void HandleSDLEvent(Renderer& renderer, SDL_Event& event, bool& should_run, bool& escaped){
@@ -31,39 +30,112 @@ void HandleSDLEvent(Renderer& renderer, SDL_Event& event, bool& should_run, bool
   }
 }
 
-int BasicTest(Lindenmayer* l_system){
-  l_system->AddRule('p', ">>>>>");
+//int PlantOne(Lindenmayer* l_system){
+//  l_system->AddRule('p', Lindenmayer::Rule{"I+[p+#]--//[--#]I[++#]-[p#]++p#", 1.0});
+//  l_system->AddRule('I', Lindenmayer::Rule{">S[//&&#][//^^#]>S", 1.0});
+//  l_system->AddRule('S', Lindenmayer::Rule{"S>S",1.0});
+//}
+//
+//int PlantTwo(Lindenmayer* l_system){
+//
+//  std::vector<Lindenmayer::Rule> X_rules {{}, {}}
+//
+//  l_system->AddRule('A', Lindenmayer::Rule{"[&>LA]/////[&>LA]//////[&>LA]", 1.0});
+//  l_system->AddRule('>', Lindenmayer::Rule{"S/////>}", 1.0});
+//  l_system->AddRule('S', Lindenmayer::Rule{">L",1.0});
+//  l_system->AddRule('L', Lindenmayer::Rule{"#", 1.0});
+//}
+
+//int StochasticTest(Lindenmayer* l_system){
+//  l_system->AddRule('p', Lindenmayer::Rule{"5>>>>[+p>>][-p>>>]>>>>>[&>p]>>>[//>p]", 1.0});
+//  l_system->AddRule('c', Lindenmayer::Rule{"2>>x>>", 1.0});
+//  l_system->AddRule('x', Lindenmayer::Rule{"2x>x",1.0});
+//}
+
+void BasicStochastic(Lindenmayer* l_system){
+
+  std::map<char, std::vector<Lindenmayer::Rule>> rule_map {
+    {'X', { Lindenmayer::Rule{">[-X]+X", 0.4},
+             Lindenmayer::Rule{">[+X]>[-X]+X", 0.6}}},
+    {'>', {Lindenmayer::Rule{">>",1.0}}}
+  };
+  l_system->AddRuleMap(rule_map);
 }
 
-int PlantOne(Lindenmayer* l_system){
-  l_system->AddRule('p', "I+[p+#]--//[--#]I[++#]-[p#]++p#");
-  l_system->AddRule('I', ">S[//&&#][//^^#]>S");
-  l_system->AddRule('S', "S>S");
+
+void Basic(Lindenmayer* l_system){
+  std::map<char, std::vector<Lindenmayer::Rule>> rule_map {
+      {'X', {Lindenmayer::Rule{">>>>", 1.0}}}
+  };
+  l_system->AddRuleMap(rule_map);
 }
 
 int main() {
+  uint32_t chunk_size = 32768;
 
-  auto* test_chunk = new Chunk{8192,8192,8192};
-  auto renderer = std::make_unique<Renderer>(1000, 600);
-  auto* l_system = new Lindenmayer("p", test_chunk, {0, 0, 0});
+  auto renderer = std::make_unique<Renderer>(1000, 600, chunk_size);
 
-  PlantOne(l_system);
+  auto* l_system = new Lindenmayer();
+  auto chunk1 = l_system->AddChunk(new Chunk {chunk_size, chunk_size, chunk_size});
+  auto chunk2 = l_system->AddChunk(new Chunk {chunk_size, chunk_size, chunk_size});
 
-  auto output = l_system->ExecuteProductions(8);
-  std::cout << fmt::format("output: {}\n", output);
+  BasicStochastic(l_system);
+  l_system->InitState(chunk1, "X");
+  l_system->InitState(chunk2, "X");
+  auto output = l_system->ExecuteProductions(5, chunk1);
 
-  l_system->ProcessString(0, *renderer);
-  renderer->ProcessChunk(l_system->GetPlantChunk());
+  /* branch length: 5, branch angle: 20 */
+  l_system->ProcessString(5, 20, chunk1);
+  renderer->UpdateChunkData(l_system->GetPlantChunk(chunk1)->render_data_, chunk1);
+  renderer->ProcessChunkData(chunk1);
+
+  auto output2 = l_system->ExecuteProductions(5, chunk2);
+  l_system->ProcessString(5, 20, chunk2);
+  renderer->UpdateChunkData(l_system->GetPlantChunk(chunk2)->render_data_, chunk2);
+  renderer->ProcessChunkData(chunk2);
+
+  auto& gui = renderer->GetGui();
+  uint32_t current_chunk_index = chunk1;
+
   bool escaped {};
 
-  for (bool should_run = true; should_run;) {
+  for (bool should_run = true; should_run;){
+    if (gui.FlagSet(Interface::Flags::kProcessAgain)){
+      std::cout << "re-render has been called\n";
+      gui.SetFlag(Interface::Flags::kProcessAgain);
+      auto [branch_length, production_count, voxel_colour, branching_angle] = gui.GetState();
+
+      /* wipe the current draw data */
+      renderer->ResetVoxels(current_chunk_index);
+      l_system->GetPlantChunk(current_chunk_index)->WipeVoxels();
+
+      /* create a new string */
+      l_system->ExecuteProductions(production_count, current_chunk_index);
+
+      /* process the new string and write the data */
+      l_system->ProcessString(branch_length, branching_angle, current_chunk_index);
+
+      /* process the new data */
+      renderer->UpdateChunkData(l_system->GetPlantChunk(current_chunk_index)->render_data_, current_chunk_index);
+      renderer->ProcessChunkData(current_chunk_index);
+    }
+
+    if (gui.FlagSet(Interface::Flags::kSwapChunks)){
+      gui.SetFlag(Interface::Flags::kSwapChunks);
+      auto new_chunk_index = gui.GetChunkIndex();
+      std::cout << fmt::format("new index: {}\n", new_chunk_index);
+      current_chunk_index = new_chunk_index;
+    }
+
     SDL_Event event;
+
     while (SDL_PollEvent(&event)) {
       HandleSDLEvent(*renderer, event, should_run, escaped);
     }
-    renderer->Render();
-  }
 
+    renderer->Render(current_chunk_index);
+  }
   printf("Exiting...\n");
+
   return 0;
 }

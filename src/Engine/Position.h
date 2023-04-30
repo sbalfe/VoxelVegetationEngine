@@ -12,11 +12,8 @@
 #include <fmt/format.h>
 
 struct Position {
-
   Position() = default;
-  Position(double x, double y, double z): x_{x}, y_{y}, z_{z}, glm_vector_ {x,y,z}{
-
-  }
+  Position(double x, double y, double z): x_{x}, y_{y}, z_{z}, glm_vector_ {x,y,z}{}
 
   auto operator()() const{ return std::make_tuple(static_cast<int>(x_),static_cast<int>(y_),static_cast<int>(z_)); }
 
@@ -54,12 +51,15 @@ struct Position {
   friend bool operator==(const Position& lhs, const Position& rhs){ return (lhs.x_ == rhs.x_) & (lhs.y_ == rhs.y_) & (lhs.z_ == rhs.z_);}
 
   Position Floor(double scale){
+
     x_ = floor(x_ / scale) * scale;
     y_ = floor(y_ / scale) * scale;
     z_ = floor(z_ / scale) * scale;
+
     glm_vector_.x = x_;
     glm_vector_.y = y_;
     glm_vector_.z = z_;
+
     return *this;
   }
 

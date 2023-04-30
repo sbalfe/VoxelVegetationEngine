@@ -39,14 +39,28 @@ class Lindenmayer {
     uint32_t width_;
   };
 
+  struct ChunkTag {
+    uint32_t id_;
+    Chunk* chunk_;
+  };
+
+  struct Rule {
+    std::string successor_;
+    double probability_;
+  };
+
   struct TurtleState {
     Position direction_;
     Position chunk_voxel_position_;
-    BranchDimension branch_dimension_;
+    uint32_t branch_size_;
   };
 
-  Lindenmayer(std::string axiom, Chunk* plant_chunk,
-                       Position initial_position);
+  struct LindenmayerState {
+    std::string axiom_;
+    std::string result_;
+  };
+
+  Lindenmayer();
 
   void SetFunctions();
 
@@ -62,7 +76,10 @@ class Lindenmayer {
    * rule = aab
    * when we read `a`, replace it with aab.
    * */
-  bool AddRule(char key, std::string&& rule);
+
+  void InitState(uint32_t chunk_index, std::string axiom);
+
+  bool AddRuleMap(std::map<char, std::vector<Lindenmayer::Rule>> rule_map);
 
   /*
    * Apply productions to our `axiom` based on the `rules` we added.
@@ -71,42 +88,39 @@ class Lindenmayer {
    *
    * returns a string for debugging purposes.
    * */
-  std::string ExecuteProductions(uint32_t production_count);
+  std::string ExecuteProductions(uint32_t production_count, uint32_t chunk_index);
 
   void Rotate(Axis axis, float sign);
-  void ProcessString(int length, Renderer& renderer);
-  Chunk* GetPlantChunk();
-  //void TestFill();
- // void ShowTurtleVoxel();
+  void ProcessString(int branch_length, double branching_angle, uint32_t chunk_tag);
+  Chunk* GetPlantChunk(uint32_t chunk_tag);
+  uint32_t AddChunk(Chunk* chunk);
 
  private:
 
   /* graphics */
-  std::vector<uint32_t> indices_;
-  Chunk* plant_chunk_;
+  //ChunkTag plant_chunk_;
+  std::unordered_map<uint32_t, Chunk*> plant_chunk_;
+  uint32_t chunk_tag_counter_;
 
   /* state */
   TurtleState turtle_state_;
   std::unordered_map<std::uint32_t, BranchDimension> dimensions_map_;
-  static constexpr uint32_t dimension_limit_ {2};
+  static constexpr uint32_t dimension_limit_ {6};
 
   /* parameters */
-  double branch_length_ {};
-  float branching_angle_ = 18.0f;
+  double branch_length_;
+  float branching_angle_;
 
-  /* L-system*/
-  std::map<char, std::string> rules_;
+  /* L-system */
+  //std::map<char, std::vector<Rule>> rules_;
+  std::map<char, std::vector<Rule>> rules_;
   std::array<std::function<void()>, 256> symbol_functions_;
   std::array<char, 3> ignore_symbols_;
   std::string axiom_;
   std::string result_;
   std::stack<TurtleState> turtle_states;
-  uint32_t size_;
+  std::map<uint32_t, LindenmayerState*> chunk_states_;
 
-  /* temp removed variables */
-  //std::map<char, Direction> direction_key_map_;
-  //int current_colour_ {0};
-  //std::uint32_t default_dimension_index_ {0};
 };
 
 #endif  // VOXEL_LINDENMAYER_H

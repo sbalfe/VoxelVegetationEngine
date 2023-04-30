@@ -10,6 +10,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 #include <SDL2/SDL.h>
+#include <fmt/format.h>
+#include <iostream>
 
 
 namespace {

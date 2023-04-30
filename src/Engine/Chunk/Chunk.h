@@ -84,6 +84,8 @@ class Chunk {
   Voxel* operator[](Position index);
   bool CheckActive(Position &pos);
   void AddVoxel(Position pos);
+  void FillEdges();
+  void WipeVoxels();
 
   /* not implemented*/
   void ExportToObj(const std::string& filename);
@@ -91,6 +93,7 @@ class Chunk {
   std::vector<Position*> position_tracker_;
   Dimensions chunk_dimensions_;
   Octree<Voxel*> voxel_octree_;
+  std::vector<Voxel*> render_data_;
 
  private:
   void GenerateMesh() const;
