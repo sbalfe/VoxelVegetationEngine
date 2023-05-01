@@ -125,19 +125,9 @@ GUI& Renderer::GetGui(){
   return gui_;
 }
 
-bool Renderer::UpdateChunkData(std::vector<Voxel*>& chunk_data, uint32_t chunk_index){
+bool Renderer::UpdateChunkData(std::vector<Voxel*> chunk_data, uint32_t chunk_index){
+  ResetVoxels(chunk_index);
   voxels_[chunk_index] = chunk_data;
-//
-//  if (voxels_.find(chunk_index) != voxels_.end()){
-//    std::cout << "data loaded\n";
-//    voxels_[chunk_index] = chunk_data;
-//    return true;
-//  }
-//  else {
-//    std::cout << "new association\n";
-//    voxels_[chunk_index] = chunk_data;
-//    return false ;
-//  }
 }
 
 void Renderer::ProcessChunkData(uint32_t chunk_index){
@@ -151,10 +141,7 @@ void Renderer::ProcessChunkData(uint32_t chunk_index){
 }
 
 void Renderer::Render(uint32_t chunk_index) {
-
   auto render_data = voxels_[chunk_index];
-  //std::cout << fmt::format("render data size: {}\n", render_data.size());
-
   HandleKeyboard();
   ShowGUI();
   glEnable(GL_DEPTH_TEST);
@@ -175,7 +162,6 @@ void Renderer::Render(uint32_t chunk_index) {
     shader_->setMat4("view", view);
 
     for (const auto& v : render_data) {
-//      std::cout << fmt::format("rendering at| x: {}, y: {}, z: {}\n",v->world_position_.x_ ,v->world_position_.y_, v->world_position_.z_ );
       glBindVertexArray(v->vao_);
       glm::mat4 model = glm::mat4(1.0f);
       glm::vec3 scale = glm::vec3(0.05, 0.05, 0.05);
@@ -194,7 +180,6 @@ void Renderer::Render(uint32_t chunk_index) {
 
 void Renderer::ShowGUI(){ gui_.ShowGUI(); }
 
-void Renderer::Export(const std::string& filename){}
 
 void Renderer::SetRandomColours(std::vector<Voxel*>& chunk_data){
 

@@ -10,7 +10,7 @@ add_library(imgui # Main Imgui files
         external/ImGui/imgui_tables.cpp external/ImGui/imgui_widgets.cpp
         # SDL2+OpenGL-specific files
         external/ImGui/imgui_impl_sdl.cpp
-        external/ImGui/imgui_impl_opengl3.cpp src/Engine/Voxel/Voxel.cpp src/Engine/GUI/GUI.cpp src/Engine/GUI/GUI.h)
+        external/ImGui/imgui_impl_opengl3.cpp)
 
 add_executable(Voxel
         src/Engine/Shaders/Shader.cpp
@@ -21,7 +21,11 @@ add_executable(Voxel
         src/Engine/Camera/Camera.cpp
         src/Engine/Renderer.cpp
         src/Engine/Chunk/Chunk.cpp
-        src/Engine/Voxel/Voxel.cpp)
+        src/Engine/Voxel/Voxel.cpp
+        src/Engine/GUI/GUI.cpp
+        src/Engine/GUI/interface.cpp
+        src/Engine/Renderer.cpp
+        src/PCG/Lindenmayer.cpp)
 
 
 find_package(OpenGL)

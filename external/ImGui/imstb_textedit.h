@@ -1,8 +1,8 @@
-// [DEAR IMGUI]
+// [DEAR interface]
 // This is a slightly modified version of stb_textedit.h 1.14.
 // Those changes would need to be pushed into nothings/stb:
 // - Fix in stb_textedit_discard_redo (see https://github.com/nothings/stb/issues/321)
-// Grep for [DEAR IMGUI] to find the changes.
+// Grep for [DEAR interface] to find the changes.
 
 // stb_textedit.h - v1.14  - public domain - Sean Barrett
 // Development of this library was sponsored by RAD Game Tools
@@ -250,8 +250,8 @@
 //
 // Notes:
 //
-// This is designed to be usable in IMGUI, so it allows for the possibility of
-// running in an IMGUI that has NOT cached the multi-line layout. For this
+// This is designed to be usable in interface, so it allows for the possibility of
+// running in an interface that has NOT cached the multi-line layout. For this
 // reason, it provides an interface that is compatible with computing the
 // layout incrementally--we try to make sure we make as few passes through
 // as possible. (For example, to locate the mouse pointer in the text, we
@@ -888,7 +888,7 @@ retry:
             if (find.length == 0)
                break;
 
-            // [DEAR IMGUI]
+            // [DEAR interface]
             // going down while being on the last line shouldn't bring us to that line end
             if (STB_TEXTEDIT_GETCHAR(str, find.first_char + find.length - 1) != STB_TEXTEDIT_NEWLINE)
                break;
@@ -1163,7 +1163,7 @@ static void stb_textedit_discard_redo(StbUndoState *state)
                state->undo_rec[i].char_storage += n;
       }
       // now move all the redo records towards the end of the buffer; the first one is at 'redo_point'
-      // [DEAR IMGUI]
+      // [DEAR interface]
       size_t move_size = (size_t)((STB_TEXTEDIT_UNDOSTATECOUNT - state->redo_point - 1) * sizeof(state->undo_rec[0]));
       const char* buf_begin = (char*)state->undo_rec; (void)buf_begin;
       const char* buf_end   = (char*)state->undo_rec + sizeof(state->undo_rec); (void)buf_end;
