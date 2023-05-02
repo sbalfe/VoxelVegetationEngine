@@ -25,7 +25,7 @@
 /* self imports */
 
 #include "src/Engine/Chunk/Chunk.h"
-#include "src/Engine/Position.h"
+#include "src/Engine/Vector3.h"
 #include "src/Engine/Voxel/Voxel.h"
 
 class Lindenmayer {
@@ -38,9 +38,9 @@ class Lindenmayer {
   };
 
   struct TurtleState {
-    Position direction_;
-    Position chunk_voxel_position_;
-    uint32_t branch_size_;
+    Vector3 direction_;
+    Vector3 chunk_voxel_position_;
+    uint32_t branch_size_ = 4;
   };
 
   struct Turtle {
@@ -52,6 +52,7 @@ class Lindenmayer {
     std::string axiom_;
     std::string result_;
     uint32_t branch_length_;
+    Voxel::Colour voxel_colour_ {0,1,0};
     double branching_angle_;
   };
 
@@ -70,12 +71,12 @@ class Lindenmayer {
   void Rotate(Axis axis, float sign);
   void ProcessString(uint32_t chunk_index);
   Chunk* GetPlantChunk(uint32_t chunk_index);
-  uint32_t AddScene(Chunk* chunk, State* state);
+  uint32_t AddScene(uint32_t chunk_size, std::string axiom, double branching_angle, uint32_t branch_length);
   void UpdateChunkState(uint32_t chunk_index, double branching_angle, uint32_t branch_length);
-  static State* CreateState(std::string axiom, double branching_angle, uint32_t branch_length);
+  void AddRule(char c, const Rule& rule){ rules_[c].emplace_back(rule); }
 
  private:
-  //static void PlaceCube(Position& cube_center, uint32_t cube_size);
+  static void PlaceCube(Vector3& cube_center, uint32_t cube_size, Chunk* chunk, bool placing_leaf);
 
   /* graphics */
   std::unordered_map<uint32_t, Scene*> scenes_;

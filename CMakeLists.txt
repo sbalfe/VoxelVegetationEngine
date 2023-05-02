@@ -17,7 +17,7 @@ add_executable(Voxel
         external/Glad/glad.c
         external/stb_image.h
         src/main.cpp
-        src/Engine/Position.h
+        src/Engine/Vector3.h
         src/Engine/Camera/Camera.cpp
         src/Engine/Renderer.cpp
         src/Engine/Chunk/Chunk.cpp

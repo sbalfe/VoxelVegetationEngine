@@ -89,26 +89,8 @@ void Renderer::FillBuffers(Voxel* voxel){
   glEnableVertexAttribArray(1);
 }
 
-//void Renderer::AddVoxel(Voxel* voxel){
-//  voxel->world_position_ = voxel->chunk_position_ / 20;
-//  FillBuffers(voxel);
-//  voxels_.emplace_back(voxel);
-//}
-
-void Renderer::ResetVoxels(uint32_t chunk_index){
-
-  std::cout << fmt::format("size before wipe: {}\n", voxels_[chunk_index].size());
-  for (auto v : voxels_[chunk_index]) {
-    glDeleteVertexArrays(1, &v->vao_);
-    glDeleteBuffers(1, &v->vbo_);
-    glDeleteBuffers(1, &v->ebo_);
-    glDeleteBuffers(1, &v->colour_buffer_);
-  }
-
-  auto fetch_vec = voxels_[chunk_index];
-  voxels_[chunk_index].clear();
-  std::cout << fmt::format("size after wipe: {}\n", voxels_[chunk_index].size());
-
+void Renderer::AddChunk(Chunk* chunk, uint32_t chunk_index){
+  chunks_[chunk_index] = chunk;
 }
 
 void Renderer::HandleKeyboard(){
@@ -125,13 +107,9 @@ GUI& Renderer::GetGui(){
   return gui_;
 }
 
-bool Renderer::UpdateChunkData(std::vector<Voxel*> chunk_data, uint32_t chunk_index){
-  ResetVoxels(chunk_index);
-  voxels_[chunk_index] = chunk_data;
-}
 
 void Renderer::ProcessChunkData(uint32_t chunk_index){
-  auto chunk_data = voxels_[chunk_index];
+  auto chunk_data = chunks_[chunk_index]->GetRenderData();
   SetRandomColours(chunk_data);
   for (auto* v : chunk_data){
     v->world_position_ = v->chunk_position_ / 20;
@@ -141,7 +119,7 @@ void Renderer::ProcessChunkData(uint32_t chunk_index){
 }
 
 void Renderer::Render(uint32_t chunk_index) {
-  auto render_data = voxels_[chunk_index];
+  auto render_data = chunks_[chunk_index]->GetRenderData();
   HandleKeyboard();
   ShowGUI();
   glEnable(GL_DEPTH_TEST);
@@ -190,8 +168,7 @@ void Renderer::SetRandomColours(std::vector<Voxel*>& chunk_data){
   };
 
   for (const auto v: chunk_data ){
-     v->colour_ = random_colour();
-    //voxel->colour_ = Voxel::Colour{0,1,0};
+    if (!v->leaf_block_) v->colour_ = Voxel::Colour{0.58,0.294,0};
   }
 }
 

@@ -37,14 +37,13 @@ class Renderer {
 
   Renderer(uint32_t screen_width, uint32_t screen_height, int chunk_size);
   static void FillBuffers(Voxel* voxel);
-  void ResetVoxels(uint32_t chunk_index);
   void Render(uint32_t chunk_index);
   void ShowGUI();
-  bool UpdateChunkData(std::vector<Voxel*> chunk_data, uint32_t chunk_index);
   void ProcessChunkData(uint32_t chunk_index);
   void HandleKeyboard();
   void ProcessMouse(double x_pos, double y_pos);
   GUI& GetGui();
+  void AddChunk(Chunk* chunk, uint32_t chunk_index);
   static void SetRandomColours(std::vector<Voxel*>& chunk_data);
 
  private:
@@ -59,6 +58,7 @@ class Renderer {
 
   /* Render */
   std::unordered_map<uint32_t,std::vector<Voxel*>> voxels_;
+  std::unordered_map<uint32_t, Chunk*> chunks_;
   static constexpr int voxel_scale_ {20};
   float delta_time_;
   float last_frame_;

@@ -7,7 +7,7 @@
 #ifndef VOXEL_CHUNK_H
 #define VOXEL_CHUNK_H
 
-#include "src/Engine/Position.h"
+#include "src/Engine/Vector3.h"
 #include "src/Engine/Voxel/Voxel.h"
 #include <GL/glew.h>
 #include <fmt/format.h>
@@ -25,17 +25,17 @@ class Chunk {
  public:
   explicit Chunk(uint32_t size);
   ~Chunk() = default;
-  [[nodiscard]] bool BoundaryCheck(const Position& pos) const;
-  [[nodiscard]] Voxel* GetVoxel(const Position &pos);
-  Voxel* operator[](Position index);
-  void AddVoxel(Position pos);
+  [[nodiscard]] bool BoundaryCheck(const Vector3& pos) const;
+  [[nodiscard]] Voxel* GetVoxel(const Vector3 &pos);
+  Voxel* operator[](Vector3 index);
+  void AddVoxel(Vector3 pos,  bool leaf);
   void WipeVoxels();
   std::vector<Voxel*> GetRenderData();
   [[nodiscard]] uint32_t GetSize() const;
  private:
   uint32_t size_;
   std::vector<Voxel*> render_data_;
-  std::vector<Position*> position_tracker_;
+  std::vector<Vector3*> position_tracker_;
   Octree<Voxel*> voxel_octree_;
 };
 

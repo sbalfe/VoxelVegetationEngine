@@ -14,7 +14,7 @@ Voxel::Voxel()
       colour_{1,1,0}
 {}
 
-Voxel::Voxel(Position chunk_position)
+Voxel::Voxel(Vector3 chunk_position)
     : vao_{},ebo_{},vbo_{},
       colour_data_{},
       colour_buffer_{},

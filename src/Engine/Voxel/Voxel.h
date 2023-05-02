@@ -5,28 +5,23 @@
 #ifndef VOXEL_VOXEL_H
 #define VOXEL_VOXEL_H
 
-#include "src/Engine/Position.h"
+#include "src/Engine/Vector3.h"
 #include <GL/glew.h>
 #include <array>
 #include <iostream>
 #include <vector>
 
-class Voxel {
- public:
-
+struct Voxel {
   // colour of the cube
   struct Colour {
     double r;
     double g;
     double b;
   };
-
   Voxel();
-  explicit Voxel(Position chunk_position);
-
+  explicit Voxel(Vector3 chunk_position);
   [[nodiscard]] explicit operator bool() const ;
   void SetActive(bool active);
-
   uint32_t vao_, ebo_, vbo_, colour_buffer_;
   std::array<GLdouble , 108> colour_data_;
   std::vector<uint32_t> indices_ {// front quad
@@ -48,10 +43,11 @@ class Voxel {
                                  7,6,4,
                                  5,7,4
   };
-   Colour colour_;
-   Position world_position_;
-   Position chunk_position_;
- private:
+
+  bool leaf_block_ {false};
+  Colour colour_;
+  Vector3 world_position_;
+  Vector3 chunk_position_;
   bool active_;
 };
 

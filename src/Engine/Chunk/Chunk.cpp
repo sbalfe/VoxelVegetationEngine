@@ -6,7 +6,7 @@ Chunk::Chunk(uint32_t size)
 }
 
 
-bool Chunk::BoundaryCheck(const Position& pos) const{
+bool Chunk::BoundaryCheck(const Vector3& pos) const{
   auto [x,y,z] = pos();
   return !(x < 0 ||
           x >= size_||
@@ -15,19 +15,22 @@ bool Chunk::BoundaryCheck(const Position& pos) const{
           z < 0 || z>= size_);
 }
 
-Voxel* Chunk::GetVoxel(const Position &pos) {
+Voxel* Chunk::GetVoxel(const Vector3 &pos) {
   if (!BoundaryCheck(pos)) return nullptr;
   auto [x,y,z] = pos();
   return voxel_octree_(x,y,z);
 }
 
-void Chunk::AddVoxel(Position pos){
+void Chunk::AddVoxel(Vector3 pos, bool leaf){
   if (!BoundaryCheck(pos)) return;
   auto [x,y,z] = pos();
   voxel_octree_(x,y,z) = new Voxel(pos);
   voxel_octree_(x,y,z)->SetActive(true);
+  if (leaf) {
+    voxel_octree_(x,y,z)->leaf_block_ = true;
+  }
   render_data_.emplace_back(voxel_octree_(x,y,z));
-  position_tracker_.emplace_back(new Position{pos});
+  position_tracker_.emplace_back(new Vector3{pos});
 }
 
 void Chunk::WipeVoxels(){
@@ -39,7 +42,7 @@ void Chunk::WipeVoxels(){
   position_tracker_.clear();
 }
 
-Voxel* Chunk::operator[](Position index)  {
+Voxel* Chunk::operator[](Vector3 index)  {
   auto [x,y,z] = index();
   return voxel_octree_(x,y,z);
 }

@@ -31,44 +31,20 @@ void HandleSDLEvent(Renderer& renderer, SDL_Event& event, bool& should_run, bool
 }
 
 int PlantOne(Lindenmayer* l_system) {
-  std::map<char, std::vector<Lindenmayer::Rule>> rule_map{
-      {'p',{
-                Lindenmayer::Rule{"I+[p+#]--//[--#]I[++#]-[p#]++p#", 0.5},
-                Lindenmayer::Rule{"I+--//[--#]I--[p#]++p#", 0.5}
-            }
-      },
-      {'I', {
-                Lindenmayer::Rule{">S[//&&#][//^^#]>S", 1.0}
-            }
-      },
-      {'S', {
-                Lindenmayer::Rule{"S>S", 1.0}
-            }
-      }};
-  l_system->AddRuleMap(rule_map);
+  l_system->AddRule('p', Lindenmayer::Rule{"I+[p+#]--//[--#]I[++#]-[p#]++p#", 0.99});
+  l_system->AddRule('p', Lindenmayer::Rule{"I+--//[--#]I--[p#]++p#", 0.01});
+  l_system->AddRule('I', Lindenmayer::Rule{">S[//&&#][//^^#]>S", 1.0});
+  l_system->AddRule('S',  Lindenmayer::Rule{"S>S", 1.0});
 }
 
 void BasicStochastic(Lindenmayer* l_system){
-
-  std::map<char, std::vector<Lindenmayer::Rule>> rule_map {
-    {'X', { Lindenmayer::Rule{">[-X]+X", 0.4},
-             Lindenmayer::Rule{">[+X]>[-X]+X", 0.6}}},
-    {'>', {Lindenmayer::Rule{">>",1.0}}}
-  };
-  l_system->AddRuleMap(rule_map);
+  l_system->AddRule('X', Lindenmayer::Rule{">[-X]+X", 0.4});
+  l_system->AddRule('X', Lindenmayer::Rule{">[+X]>[-X]+X", 0.6});
+  l_system->AddRule('>', Lindenmayer::Rule{">>", 1.0});
 }
 
-
 void Basic(Lindenmayer* l_system){
-  std::map<char, std::vector<Lindenmayer::Rule>> rule_map {
-      {
-          'X', {
-                   Lindenmayer::Rule("X>>[^>>]>>[&>>X]>>[//>>X]", 1.0),
-               }
-      }
-  };
-
-  l_system->AddRuleMap(rule_map);
+  l_system->AddRule('X',  Lindenmayer::Rule("X>>[^>>]>>[&>>X]>>[//>>X]", 1.0));
 }
 
 void ExecuteChunk(uint32_t chunk_index, uint32_t production_count, Lindenmayer* l_system, Renderer& renderer){
@@ -79,8 +55,8 @@ void ExecuteChunk(uint32_t chunk_index, uint32_t production_count, Lindenmayer* 
   /* process it which fills our chunk */
   l_system->ProcessString(chunk_index);
 
-  /* store the chunk data with the associated index in the renderer*/
-  renderer.UpdateChunkData(l_system->GetPlantChunk(chunk_index)->GetRenderData(), chunk_index);
+  /* store the chunk data with the associated index in the renderer */
+  renderer.AddChunk(l_system->GetPlantChunk(chunk_index), chunk_index);
 
   /* update the buffers of each voxel in the chunk data ready to be rendered*/
   renderer.ProcessChunkData(chunk_index);
@@ -96,16 +72,12 @@ int main() {
   auto* l_system = new Lindenmayer();
   PlantOne(l_system);
 
-  /* Set up our chunks and add them to our Scene, where a Scene is a Chunk with its corresponding state*/
-  auto* c1 = new Chunk{chunk_size};
-  auto* c2 = new Chunk{chunk_size};
-
-  auto chunk1 = l_system->AddScene(c1, Lindenmayer::CreateState("p", 18, 3));
-  auto chunk2 = l_system->AddScene(c2, Lindenmayer::CreateState("p", 7, 5));
+  auto chunk1 = l_system->AddScene(chunk_size, "p", 18, 1);
+  auto chunk2 = l_system->AddScene(chunk_size, "p", 7, 1);
 
   /* generate the initial model */
-  ExecuteChunk(chunk1, 5, l_system, *renderer);
-  ExecuteChunk(chunk2, 5, l_system, *renderer);
+  ExecuteChunk(chunk1, 4, l_system, *renderer);
+  ExecuteChunk(chunk2, 4, l_system, *renderer);
 
   GUI& gui = renderer->GetGui();
 
