@@ -30,21 +30,23 @@ void Chunk::AddVoxel(Vector3 pos, bool leaf){
     voxel_octree_(x,y,z)->leaf_block_ = true;
   }
   render_data_.emplace_back(voxel_octree_(x,y,z));
-  position_tracker_.emplace_back(new Vector3{pos});
 }
 
 void Chunk::WipeVoxels(){
-  for (const auto p: position_tracker_){
-    auto [x,y,z] = (*p)();
+  for (const auto v: render_data_ ){
+    auto [x,y,z] = v->chunk_position_;
     voxel_octree_(x,y,z) = nullptr;
   }
   render_data_.clear();
-  position_tracker_.clear();
 }
 
 Voxel* Chunk::operator[](Vector3 index)  {
   auto [x,y,z] = index();
   return voxel_octree_(x,y,z);
+}
+
+Octree<Voxel*> Chunk::GetOctree(){
+  return voxel_octree_;
 }
 
 std::vector<Voxel*> Chunk::GetRenderData(){return render_data_;}

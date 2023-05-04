@@ -22,18 +22,19 @@ void Interface::CoreGui(){
   ImGui_ImplSDL2_NewFrame(window_);
   ImGui::NewFrame();
   ImGui::Begin("test window");
-  if (ImGui::Button("show model")){
+  if (ImGui::Button("Show")){
     ToggleFlag(Flags::kShow);
   }
-  if (ImGui::Button("Re-render")){
+  if (ImGui::Button("Update Render")){
     ToggleFlag(Flags::kProcessAgain);
-  }
-  if (ImGui::Button("export to OBJ")){
-    ToggleFlag(Flags::kExport);
   }
   if (ImGui::Button("Swap Chunk")){
     ToggleFlag(Flags::kSwapChunks);
   }
+  if (ImGui::Button("Load Voxel File")){
+    ToggleFlag(Flags::kLoadCustomFile);
+  }
+  ImGui::InputText("filename", state_.voxel_file_, 256);
   SliderInt("branch length", &state_.branch_length_, branch_length_min_, branch_length_max_);
   SliderInt("production count", &state_.production_count_, production_count_min_, production_count_max_);
   SliderInt("branching angle", &state_.branching_angle_, branching_angle_min_, branching_angle_max_);

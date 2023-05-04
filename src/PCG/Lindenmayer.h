@@ -40,7 +40,7 @@ class Lindenmayer {
   struct TurtleState {
     Vector3 direction_;
     Vector3 chunk_voxel_position_;
-    uint32_t branch_size_ = 4;
+    uint32_t branch_size_ = 3;
   };
 
   struct Turtle {
@@ -74,14 +74,20 @@ class Lindenmayer {
   uint32_t AddScene(uint32_t chunk_size, std::string axiom, double branching_angle, uint32_t branch_length);
   void UpdateChunkState(uint32_t chunk_index, double branching_angle, uint32_t branch_length);
   void AddRule(char c, const Rule& rule){ rules_[c].emplace_back(rule); }
+//  void SetActiveChunk(uint32_t chunk_index){active_chunk_ = chunk_index;}
+//  [[nodiscard]] uint32_t GetActiveChunk() const {return active_chunk_;}
 
+  std::vector<std::vector<double>> model;
  private:
   static void PlaceCube(Vector3& cube_center, uint32_t cube_size, Chunk* chunk, bool placing_leaf);
 
   /* graphics */
   std::unordered_map<uint32_t, Scene*> scenes_;
-  uint32_t chunk_tag_counter_ {0};
+  uint32_t chunk_tag_counter_;
   uint32_t active_chunk_;
+  Vector3 model_position {Vector3{32768 / 2.0,
+                                 0,
+                                 32768 / 2.0}};
 
   /* L-system */
   std::map<char, std::vector<Rule>> rules_;

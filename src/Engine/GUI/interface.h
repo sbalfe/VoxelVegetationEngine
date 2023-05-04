@@ -21,6 +21,7 @@ class Interface {
     int colour_;
     int branching_angle_;
     int chunk_index_;
+    char voxel_file_[256];
   };
 
   explicit Interface(SDL_Window* window);
@@ -30,7 +31,8 @@ class Interface {
     kExport = 1 << 0,
     kProcessAgain  = 1 << 2,
     kShow = 1 << 3,
-    kSwapChunks = 1 << 4
+    kSwapChunks = 1 << 4,
+    kLoadCustomFile = 1 << 5
   };
 
   [[nodiscard]] bool FlagSet(Flags flags) const;

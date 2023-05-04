@@ -113,6 +113,7 @@ class GUI {
   void Init() const;
   void NewFrame() const;
   void SwapWindow() const;
+  std::string GetFileName();
 
  private:
   SDL_Window *window_;

@@ -31,11 +31,11 @@ class Chunk {
   void AddVoxel(Vector3 pos,  bool leaf);
   void WipeVoxels();
   std::vector<Voxel*> GetRenderData();
+  Octree<Voxel*> GetOctree();
   [[nodiscard]] uint32_t GetSize() const;
  private:
   uint32_t size_;
   std::vector<Voxel*> render_data_;
-  std::vector<Vector3*> position_tracker_;
   Octree<Voxel*> voxel_octree_;
 };
 

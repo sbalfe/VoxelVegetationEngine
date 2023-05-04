@@ -7,7 +7,7 @@
 #include "Lindenmayer.h"
 
 Lindenmayer::Lindenmayer()
-    :symbol_functions_{}
+    :symbol_functions_{}, chunk_tag_counter_ {0}
 {
   SetFunctions();
 }
@@ -18,15 +18,23 @@ void Lindenmayer::SetFunctions(){
   /* place assets */
   symbol_functions_['#'] = [&](){
     auto [chunk, state, turtle] = (*scenes_[active_chunk_])();
-
-
+    chunk->AddVoxel(turtle->state_.chunk_voxel_position_, true);
+    if (!model.empty()) {
+      for (const auto& vox : model) {
+        auto turtle_pos = turtle->state_.chunk_voxel_position_;
+        turtle_pos.x_ += vox[0];
+        turtle_pos.y_ += vox[1];
+        turtle_pos.z_ += vox[2];
+        std::cout << fmt::format("adding voxel | x: {}, y: {}, z: {}\n",  turtle_pos.x_, turtle_pos.y_, turtle_pos.z_);
+        chunk->AddVoxel(turtle_pos, true);
+      }
+    }
   };
-
   /* branching */
   symbol_functions_[']'] = [&](){
     auto [chunk, state, turtle] = (*scenes_[active_chunk_])();
     turtle->state_.branch_size_++;
-    if (turtle->state_.branch_size_ > 5) turtle->state_.branch_size_ = 5;
+    if (turtle->state_.branch_size_ > 4) turtle->state_.branch_size_ = 4;
     turtle->state_ = turtle->turtle_states_->top();
     turtle->turtle_states_->pop();
 
@@ -46,7 +54,35 @@ void Lindenmayer::SetFunctions(){
   symbol_functions_['&'] = [&](){  Rotate(Axis::kX,1); };
   symbol_functions_['+'] = [&](){  Rotate(Axis::kZ, 1); };
   symbol_functions_['-'] = [&](){  Rotate(Axis::kZ, -1); };
-}
+
+  symbol_functions_['>'] = [&](){
+    auto [chunk, state, turtle] = (*scenes_[active_chunk_])();
+    Vector3 initial_position = turtle->state_.chunk_voxel_position_;
+    Vector3 current_position = initial_position;
+    for (int i = 0; i < state->branch_length_ ; i++){
+      //chunk->AddVoxel(turtle->state_.chunk_voxel_position_, false);
+      PlaceCube(turtle->state_.chunk_voxel_position_, turtle->state_.branch_size_, chunk, false);
+      Vector3 current_voxel = turtle->state_.chunk_voxel_position_.Floor(1);
+      Vector3 check_voxel_boundary = current_voxel;
+      while (chunk->GetVoxel(turtle->state_.chunk_voxel_position_) != nullptr) {
+        for (;;) {
+          current_position.Update(0.1, turtle->state_.direction_, initial_position);
+
+          /* update our position to increment from for the next increment */
+          initial_position = current_position;
+
+          /* check if the position we just moved to has passed the boundary by seeing if the floored valued has changed*/
+          check_voxel_boundary = current_position;
+          check_voxel_boundary.Floor(1);
+          if (check_voxel_boundary != current_voxel) {
+            break;
+          }
+        }
+        turtle->state_.chunk_voxel_position_ = check_voxel_boundary;
+      }
+    }
+  };
+};
 
 void Lindenmayer::ProcessString(uint32_t chunk_index) {
 
@@ -56,51 +92,22 @@ void Lindenmayer::ProcessString(uint32_t chunk_index) {
 
   /* reset position and direction */
   turtle->state_.chunk_voxel_position_ = Vector3{chunk->GetSize() / 2.0,
-                                        0,
+                                        3,
                                                  chunk->GetSize() / 2.0};
 
   turtle->state_.direction_ = Vector3{0.0,1.0,0.0};
 
   std::for_each(std::begin(state->result_), std::end(state->result_), [&](char c){
-
-
-    /* parse digit characters differently */
     if (isdigit(c)) {
-
-      /* convert char to integer */
       uint32_t dimension_index = c - '0';
       turtle->state_.branch_size_ = dimension_index;
     }
     else {
-
-      if (c == '>'){
-        Vector3 initial_position = turtle->state_.chunk_voxel_position_;
-        Vector3 current_position = initial_position;
-        for (int i = 0; i < state->branch_length_ ; i++){
-          //chunk->AddVoxel(turtle->state_.chunk_voxel_position_);
-          std::cout << fmt::format("branch size: {}\n", turtle->state_.branch_size_);
-          PlaceCube(turtle->state_.chunk_voxel_position_, turtle->state_.branch_size_, chunk, true);
-          Vector3 current_voxel = turtle->state_.chunk_voxel_position_.Floor(1);
-          Vector3 check_voxel_boundary = current_voxel;
-          while (chunk->GetVoxel(turtle->state_.chunk_voxel_position_) != nullptr) {
-            for (;;) {
-              current_position.Update(0.1, turtle->state_.direction_, initial_position);
-              /* update our position to increment from for the next increment */
-              initial_position = current_position;
-              /* check if the position we just moved to has passed the boundary by seeing if the floored valued has changed*/
-              check_voxel_boundary = current_position;
-              check_voxel_boundary.Floor(1);
-              if (check_voxel_boundary != current_voxel) {
-                break;
-              }
-            }
-            turtle->state_.chunk_voxel_position_ = check_voxel_boundary;
-          }
+        if (symbol_functions_[c]) {
+          symbol_functions_[c]();
+        } else {
+          std::cout << fmt::format("no function for symbol: {}\n", c);
         }
-      }
-      else {
-        if (symbol_functions_[c]) symbol_functions_[c]();
-      }
     }
   });
   while (!turtle->turtle_states_->empty()){
@@ -161,11 +168,20 @@ std::string Lindenmayer::ExecuteProductions(uint32_t production_count, uint32_t 
         auto [symbol, rule_vector] = *rule;
         intermediate_string += SelectStochasticRule(rule_vector);
       }
-      else { intermediate_string += c; }
+      else {
+//        if (c == '#'){
+//          if (production_count > 1){
+//            intermediate_string += c;
+//          }
+//        }
+//        else {
+//          intermediate_string += c;
+//        }
+        intermediate_string += c;
+      }
     });
     state->result_ = intermediate_string;
   }
-
   return state->result_;
 }
 
@@ -189,6 +205,10 @@ void Lindenmayer::UpdateChunkState(uint32_t chunk_index, double branching_angle,
 }
 
 void Lindenmayer::PlaceCube(Vector3& cube_center, uint32_t cube_size, Chunk* plant_chunk, bool placing_leaf){
+  if (cube_size == 1){
+    plant_chunk->AddVoxel(cube_center, placing_leaf);
+    return;
+  }
   double half_size = cube_size / 2.0;
   double remainder = std::fmod(half_size, 1.0);
   if (remainder == 0.5){floor(half_size);}
