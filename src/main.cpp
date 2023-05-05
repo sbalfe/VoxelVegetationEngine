@@ -31,28 +31,24 @@ void HandleSDLEvent(Renderer& renderer, SDL_Event& event, bool& should_run, bool
 }
 
 int PlantOne(Lindenmayer* l_system) {
-  l_system->AddRule('p', Lindenmayer::Rule{"I+[p+]--//[--]I[++]-[p]++p", 0.99});
-  l_system->AddRule('p', Lindenmayer::Rule{"I+--//[--]I--[p]++p", 0.01});
-  l_system->AddRule('I', Lindenmayer::Rule{">S[//&&#][//^^#]>S", 1.0});
-  l_system->AddRule('S',  Lindenmayer::Rule{"S>S", 1.0});
+  auto map1 = l_system->RegisterMap();
+  l_system->SetActiveMap(map1);
+  l_system->AddRule('p', Lindenmayer::Rule{"I+[p+]--//[--]I[++]-[p]++p", 1.0}, map1);
+  l_system->AddRule('I', Lindenmayer::Rule{">S[//&&#][//^^]>S", 1.0}, map1);
+  l_system->AddRule('S',  Lindenmayer::Rule{"S>S", 1.0}, map1);
 }
-
+//
 void BasicStochastic(Lindenmayer* l_system){
-  l_system->AddRule('X', Lindenmayer::Rule{">[-X#]+X", 0.4});
-  l_system->AddRule('X', Lindenmayer::Rule{">[+X#]>[-X#]+X", 0.6});
-  l_system->AddRule('>', Lindenmayer::Rule{">>", 1.0});
-}
-
-void SingleCube(Lindenmayer* l_system){
-  l_system->AddRule('x', Lindenmayer::Rule{">>>>", 1.0});
+  auto map2 = l_system->RegisterMap();
+  l_system->AddRule('X', Lindenmayer::Rule{">[-X#]+X", 0.4}, map2);
+  l_system->AddRule('X', Lindenmayer::Rule{">[+X#]>[-X#]+X", 0.6}, map2);
+  l_system->AddRule('>', Lindenmayer::Rule{">>", 1.0}, map2);
 }
 
 void Basic(Lindenmayer* l_system){
-  l_system->AddRule('X',  Lindenmayer::Rule("X>>[^>>]>>[&>>X]>>[//>>X]", 1.0));
-}
-
-void ModelTest(Lindenmayer* l_system){
-  l_system->AddRule('x',  Lindenmayer::Rule("#", 1.0));
+  auto basic_map = l_system->RegisterMap();
+  l_system->SetActiveMap(basic_map);
+  l_system->AddRule('X',  Lindenmayer::Rule("#", 1.0), basic_map);
 }
 
 void ExecuteChunk(uint32_t chunk_index, uint32_t production_count, Lindenmayer* l_system, Renderer& renderer){
@@ -96,18 +92,20 @@ std::vector<std::vector<double>> ReadVoxFile(const std::string& filename){
 
 int main() {
   uint32_t chunk_size = 32768;
-
   /* setup our renderer*/
   auto renderer = std::make_unique<Renderer>(1000, 600, chunk_size);
 
   /* setup our L-system*/
   auto* l_system = new Lindenmayer();
-  PlantOne(l_system);
 
-  auto chunk1 = l_system->AddScene(chunk_size, "p", 19, 4);
-  ExecuteChunk(chunk1, 5, l_system, *renderer);
-  //auto chunk2 = l_system->AddScene(chunk_size, "p", 7, 1);
-  //ExecuteChunk(chunk2, 5, l_system, *renderer);
+  /* call functions with pre-defined L-system maps */
+  PlantOne(l_system); // map index 0
+  BasicStochastic(l_system); // map index 1
+
+  auto chunk1 = l_system->AddScene(chunk_size, "p", 18, 4, 3);
+  ExecuteChunk(chunk1, 4, l_system, *renderer);
+  auto chunk2 = l_system->AddScene(chunk_size, "p", 7, 1, 2);
+  ExecuteChunk(chunk2, 5, l_system, *renderer);
 
   GUI& gui = renderer->GetGui();
 
@@ -119,10 +117,9 @@ int main() {
   for (bool should_run = true; should_run;){
     if (gui.FlagSet(Interface::Flags::kProcessAgain)){
       gui.SetFlag(Interface::Flags::kProcessAgain);
-      auto [branch_length, production_count, voxel_colour, branching_angle] = gui.GetState();
-
+      auto [branch_length, production_count, voxel_colour, branching_angle, axiom, root_size] = gui.GetState();
       /* update the specified chunks state with our new values */
-      l_system->UpdateChunkState(current_chunk_index, branching_angle, branch_length);
+      l_system->UpdateChunkState(current_chunk_index, branching_angle, branch_length, axiom, root_size);
 
       /* clear the chunk of all its voxels */
       l_system->GetPlantChunk(current_chunk_index)->WipeVoxels();
@@ -139,6 +136,11 @@ int main() {
     if (gui.FlagSet(Interface::Flags::kLoadCustomFile)){
       gui.SetFlag(Interface::Flags::kLoadCustomFile);
       l_system->model = ReadVoxFile("../data/Models/"+gui.GetFileName());
+      gui.SetFlag(Interface::Flags::kProcessAgain);
+    }
+    if (gui.FlagSet(Interface::Flags::kSwapMaps)){
+      gui.SetFlag(Interface::Flags::kSwapMaps);
+      l_system->SetActiveMap(gui.GetMapIndex());
       gui.SetFlag(Interface::Flags::kProcessAgain);
     }
     SDL_Event event;

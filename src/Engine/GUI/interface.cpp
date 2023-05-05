@@ -15,6 +15,10 @@ Interface::Interface(SDL_Window* window)
       branching_angle_max_{45},
       chunk_index_min_ {0},
       chunk_index_max_ {1},
+      rule_min_ {0},
+      rule_max_ {1},
+      root_size_min_{1},
+      root_size_max_{6},
       show{true},flags_{}{}
 
 void Interface::CoreGui(){
@@ -34,11 +38,18 @@ void Interface::CoreGui(){
   if (ImGui::Button("Load Voxel File")){
     ToggleFlag(Flags::kLoadCustomFile);
   }
+  if (ImGui::Button("Swap Map")){
+    ToggleFlag(Flags::kSwapMaps);
+  }
+
   ImGui::InputText("filename", state_.voxel_file_, 256);
+  ImGui::InputText("axiom", state_.axiom_, 256);
   SliderInt("branch length", &state_.branch_length_, branch_length_min_, branch_length_max_);
+  SliderInt("Root Branch Size", &state_.root_size_, root_size_min_, root_size_max_);
   SliderInt("production count", &state_.production_count_, production_count_min_, production_count_max_);
   SliderInt("branching angle", &state_.branching_angle_, branching_angle_min_, branching_angle_max_);
   SliderInt("model type", &state_.chunk_index_, chunk_index_min_, chunk_index_max_);
+  SliderInt("rule map", &state_.rule_map_, rule_min_, rule_max_);
 }
 
 

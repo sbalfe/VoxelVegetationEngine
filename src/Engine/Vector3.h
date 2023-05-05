@@ -32,10 +32,11 @@ struct Vector3 {
     z_ = glm_vec.z;
   }
 
-  void Update(double t, Vector3 turtle_direction, Vector3 initial_position){
+  Vector3 Update(double t, Vector3 turtle_direction, Vector3 initial_position){
     x_ = ((turtle_direction.x_ * t)) + initial_position.x_;
     y_ = ((turtle_direction.y_ * t) ) + initial_position.y_;
     z_ = ((turtle_direction.z_ * t)) + initial_position.z_;
+    return *this;
   }
 
   friend bool operator==(const Vector3& lhs, const Vector3& rhs){ return (lhs.x_ == rhs.x_) & (lhs.y_ == rhs.y_) & (lhs.z_ == rhs.z_);}

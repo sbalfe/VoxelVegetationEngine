@@ -89,13 +89,9 @@ void Renderer::FillBuffers(Voxel* voxel){
   };
 
   for (int i = 0; i < 108; i+=3) {
-    auto r_c = random_colour();
     voxel->colour_data_[i] = voxel->colour_.r;
     voxel->colour_data_[i+1] = voxel->colour_.g;
     voxel->colour_data_[i+2] = voxel->colour_.b;
-//    voxel->colour_data_[i] = r_c.r;
-//    voxel->colour_data_[i+1] = r_c.g;
-//    voxel->colour_data_[i+2] = r_c.b;
   }
 
   glGenBuffers(1, &voxel->colour_buffer_);
@@ -128,23 +124,17 @@ void Renderer::ProcessChunkData(uint32_t chunk_index){
   for (auto* v : chunk_data){
     auto voxel_chunk_position = v->chunk_position_;
     auto [x,y,z] = voxel_chunk_position();
-    auto up = Vector3{x, y+1, z};
-    auto down = Vector3{x,y-1,z};
-    auto left = Vector3{x-1,y,z};
-    auto right = Vector3{x+1,y,z};
-    auto front = Vector3{x, y, z+1};
-    auto back = Vector3{x,y,z-1};
     auto CheckQuad = [&](Vector3 pos, int index){
       if (chunks_[chunk_index]->GetVoxel(pos) == nullptr){
         v->AddQuad(index);
       }
     };
-    CheckQuad(front, 0);
-    CheckQuad(left, 1);
-    CheckQuad(right, 2);
-    CheckQuad(down, 3);
-    CheckQuad(up, 4);
-    CheckQuad(back, 5);
+    CheckQuad(Vector3{x, y+1, z}, 0);
+    CheckQuad(Vector3{x,y-1,z}, 1);
+    CheckQuad(Vector3{x-1,y,z}, 2);
+    CheckQuad(Vector3{x,y-1,z}, 3);
+    CheckQuad(Vector3{x, y+1, z}, 4);
+    CheckQuad(Vector3{x,y,z-1}, 5);
     v->world_position_ = v->chunk_position_ / 20;
     FillBuffers(v);
   }
@@ -199,13 +189,22 @@ void Renderer::SetRandomColours(std::vector<Voxel*>& chunk_data){
     return {distr(eng) ,distr(eng), distr(eng)};
   };
 
-  for (const auto v: chunk_data ){
-    if (!v->leaf_block_) {
-      v->colour_ = Voxel::Colour {0.58, 0.294, 0};
+  auto random_brown = []() -> Voxel::Colour {
+    std::mt19937_64 eng(std::random_device{}());
+    std::uniform_real_distribution<double> distr(0.3, 0.7); // adjust range to control darkness of brown
+    double r = distr(eng);
+    double g = r * 0.5;
+    double b = b * 0.10;
+    return {r, g, b};
+  };
+
+  for (const auto voxel: chunk_data ){
+    if (!voxel->leaf_block_) {
+      voxel->colour_ = random_brown();
     }
     else {
       std::cout << "leaf block\n";
-      v->colour_ = Voxel::Colour {0.0, 1.0, 0.0};
+      voxel->colour_ = Voxel::Colour {0.0, 1.0, 0.0};
     }
   }
 }

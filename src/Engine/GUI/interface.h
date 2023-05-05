@@ -21,7 +21,10 @@ class Interface {
     int colour_;
     int branching_angle_;
     int chunk_index_;
+    int rule_map_;
+    int root_size_;
     char voxel_file_[256];
+    char axiom_[256];
   };
 
   explicit Interface(SDL_Window* window);
@@ -32,7 +35,8 @@ class Interface {
     kProcessAgain  = 1 << 2,
     kShow = 1 << 3,
     kSwapChunks = 1 << 4,
-    kLoadCustomFile = 1 << 5
+    kLoadCustomFile = 1 << 5,
+    kSwapMaps = 1 << 6
   };
 
   [[nodiscard]] bool FlagSet(Flags flags) const;
@@ -52,6 +56,10 @@ class Interface {
   uint32_t branching_angle_max_;
   uint32_t chunk_index_min_;
   uint32_t chunk_index_max_;
+  uint32_t rule_min_;
+  uint32_t rule_max_;
+  uint32_t root_size_min_;
+  uint32_t root_size_max_;
   RenderState state_;
   Flags flags_;
   SDL_Window* window_;

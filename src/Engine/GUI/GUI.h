@@ -107,8 +107,9 @@ class GUI {
   void Destroy();
   [[nodiscard]] bool FlagSet(Interface::Flags flags) const;
   void ShowGUI();
-  std::tuple<int,int,int,int> GetState();
+  std::tuple<int,int,int,int, std::string, int> GetState();
   int GetChunkIndex ();
+  int GetMapIndex();
   void SetFlag(Interface::Flags flag);
   void Init() const;
   void NewFrame() const;

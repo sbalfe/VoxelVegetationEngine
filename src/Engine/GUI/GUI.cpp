@@ -71,11 +71,19 @@ void GUI::SetFlag(Interface::Flags flag){ imgui_interface_->ToggleFlag(flag); }
 
 int GUI::GetChunkIndex(){return imgui_interface_->GetState()->chunk_index_;}
 
+int GUI::GetMapIndex(){return imgui_interface_->GetState()->rule_map_;}
+
+
 std::string GUI::GetFileName(){
     return { imgui_interface_->GetState()->voxel_file_};
 }
 
-std::tuple<int,int,int,int> GUI::GetState(){
+std::tuple<int,int,int,int, std::string, int> GUI::GetState(){
   Interface::RenderState* state = imgui_interface_->GetState();
-  return std::make_tuple(state->branch_length_, state->production_count_, state->colour_, state->branching_angle_);
+  return std::make_tuple(state->branch_length_,
+                         state->production_count_,
+                         state->colour_,
+                         state->branching_angle_,
+                         state->axiom_,
+                         state->root_size_);
 }

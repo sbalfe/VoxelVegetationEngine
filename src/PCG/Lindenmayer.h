@@ -30,6 +30,7 @@
 
 class Lindenmayer {
  public:
+
   enum class Axis { kX, kY, kZ };
 
   struct Rule {
@@ -37,10 +38,13 @@ class Lindenmayer {
     double probability_;
   };
 
+  using RuleMap = std::map<char, std::vector<Rule>>;
+
   struct TurtleState {
     Vector3 direction_;
     Vector3 chunk_voxel_position_;
-    uint32_t branch_size_ = 3;
+    uint32_t core_size_;
+    uint32_t branch_size_;
   };
 
   struct Turtle {
@@ -52,7 +56,6 @@ class Lindenmayer {
     std::string axiom_;
     std::string result_;
     uint32_t branch_length_;
-    Voxel::Colour voxel_colour_ {0,1,0};
     double branching_angle_;
   };
 
@@ -66,32 +69,34 @@ class Lindenmayer {
   Lindenmayer();
   void SetFunctions();
   static std::string SelectStochasticRule(std::vector<Lindenmayer::Rule>& rules);
-  bool AddRuleMap(std::map<char, std::vector<Lindenmayer::Rule>> rule_map);
   std::string ExecuteProductions(uint32_t production_count, uint32_t chunk_index);
   void Rotate(Axis axis, float sign);
   void ProcessString(uint32_t chunk_index);
   Chunk* GetPlantChunk(uint32_t chunk_index);
-  uint32_t AddScene(uint32_t chunk_size, std::string axiom, double branching_angle, uint32_t branch_length);
-  void UpdateChunkState(uint32_t chunk_index, double branching_angle, uint32_t branch_length);
-  void AddRule(char c, const Rule& rule){ rules_[c].emplace_back(rule); }
-//  void SetActiveChunk(uint32_t chunk_index){active_chunk_ = chunk_index;}
-//  [[nodiscard]] uint32_t GetActiveChunk() const {return active_chunk_;}
+  uint32_t AddScene(uint32_t chunk_size, std::string axiom, double branching_angle, uint32_t branch_length, uint32_t root_size);
+
+  void UpdateChunkState(uint32_t chunk_index,
+                        double branching_angle,
+                        uint32_t branch_length,
+                        std::string axiom, uint32_t root_size);
+  uint32_t RegisterMap();
+  uint32_t SetActiveMap(uint32_t map_index);
+  void AddRule(char c, const Rule& rule, uint32_t map_index);
 
   std::vector<std::vector<double>> model;
  private:
-  static void PlaceCube(Vector3& cube_center, uint32_t cube_size, Chunk* chunk, bool placing_leaf);
+  static void PlaceCube(Vector3& cube_center, uint32_t cube_size,Chunk* chunk, bool placing_leaf);
 
   /* graphics */
   std::unordered_map<uint32_t, Scene*> scenes_;
   uint32_t chunk_tag_counter_;
   uint32_t active_chunk_;
-  Vector3 model_position {Vector3{32768 / 2.0,
-                                 0,
-                                 32768 / 2.0}};
-
   /* L-system */
-  std::map<char, std::vector<Rule>> rules_;
+  std::map<uint32_t, RuleMap> rules_;
+  uint32_t active_rules_;
+  uint32_t rule_counter_;
   std::array<std::function<void()>, 256> symbol_functions_;
+
 };
 
 #endif  // VOXEL_LINDENMAYER_H
