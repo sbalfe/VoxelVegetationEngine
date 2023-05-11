@@ -1,3 +1,0 @@
-# voxel-vegetation-engine
-
-- TEST
