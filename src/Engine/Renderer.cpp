@@ -129,12 +129,12 @@ void Renderer::ProcessChunkData(uint32_t chunk_index){
         v->AddQuad(index);
       }
     };
-    CheckQuad(Vector3{x, y+1, z}, 0);
-    CheckQuad(Vector3{x,y-1,z}, 1);
-    CheckQuad(Vector3{x-1,y,z}, 2);
-    CheckQuad(Vector3{x,y-1,z}, 3);
-    CheckQuad(Vector3{x, y+1, z}, 4);
-    CheckQuad(Vector3{x,y,z-1}, 5);
+    CheckQuad(Vector3{x, y, z+1}, 0); // okay
+    CheckQuad(Vector3{x-1,y,z}, 1); // okay
+    CheckQuad(Vector3{x+1,y,z}, 2);
+    CheckQuad(Vector3{x,y-1,z}, 3);// okay
+    CheckQuad(Vector3{x, y+1, z}, 4); // okay
+    CheckQuad(Vector3{x,y,z-1}, 5); // okay
     v->world_position_ = v->chunk_position_ / 20;
     FillBuffers(v);
   }
